@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- saved from url=(0042)file:///C:/Users/tt/Downloads/index_6.html -->
+<!-- saved from url=(0042)file:///C:/Users/tt/Downloads/index_7.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SchoolPay — ระบบบัตรนักเรียน</title>
-<script src="./index_files/supabase-js@2"></script>
+
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-d:#0C447C;--green:#3B6D11;--green-l:#EAF3DE;--red:#A32D2D;--red-l:#FCEBEB;--amber-l:#FAEEDA;--amber-d:#633806;--border:#e0e0e0;--gray:#f5f5f5;--text:#1a1a1a;--text2:#666;--text3:#999;--r:8px;--rl:12px;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -107,7 +107,7 @@ input:focus,select:focus{border-color:var(--blue);}
 .setup-box button{cursor:pointer;}
 
 </style>
-</head>
+<script src="./index_files/supabase.js.download"></script></head>
 <body>
 
 
@@ -372,9 +372,18 @@ input:focus,select:focus{border-color:var(--blue);}
 let sb = null;
 
 function initSupabase(url, key) {
-  var client = window.supabase || window.Supabase || (typeof supabase !== 'undefined' ? supabase : null);
-  if(!client) { alert('Supabase library โหลดไม่ได้ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่'); return; }
-  sb = client.createClient(url, key);
+  try {
+    if(window.supabase && window.supabase.createClient) {
+      sb = window.supabase.createClient(url, key);
+    } else if(typeof supabase !== 'undefined' && supabase.createClient) {
+      sb = supabase.createClient(url, key);
+    } else {
+      throw new Error('Supabase library not loaded');
+    }
+  } catch(e) {
+    alert('โหลด Supabase ไม่ได้: ' + e.message + '\nกรุณารีเฟรชหน้าเว็บ');
+    throw e;
+  }
 }
 
 async function saveSetup() {
@@ -1465,15 +1474,15 @@ function exportPDF() {
 
 
 // ===== Init =====
-(async function init() {
+async function _appInit() {
   const url=localStorage.getItem('sp_url');
   const key=localStorage.getItem('sp_key');
   if(!url||!key) {
     document.getElementById('setup-screen').style.display='flex';
     return;
   }
-  initSupabase(url, key);
   try {
+    initSupabase(url, key);
     await sb.from('students').select('id').limit(1);
     setOnline(true);
     await showShopSelect();
@@ -1481,6 +1490,34 @@ function exportPDF() {
     setOnline(false);
     document.getElementById('setup-screen').style.display='flex';
   }
+}
+// รอ Supabase โหลดก่อน
+if(window.supabase) {
+  _appInit();
+} else {
+  document.addEventListener('supabase_ready', _appInit);
+  // fallback: รอ 2 วินาที
+  setTimeout(function() {
+    if(typeof sb === 'undefined' || !sb) _appInit();
+  }, 2000);
+}
+</script>
+<script>
+(function() {
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';
+  s.onload = function() {
+    console.log('Supabase loaded:', typeof window.supabase);
+    // trigger init ถ้ามี saved credentials
+    var url = localStorage.getItem('sp_url');
+    var key = localStorage.getItem('sp_key');
+    if(url && key) {
+      try { initSupabase(url, key); } catch(e) {}
+      document.dispatchEvent(new Event('supabase_ready'));
+    }
+  };
+  s.onerror = function() { console.error('Failed to load Supabase'); };
+  document.head.appendChild(s);
 })();
 </script>
 
