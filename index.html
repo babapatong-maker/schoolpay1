@@ -400,12 +400,46 @@ input:focus,select:focus{border-color:var(--blue);}
         <div class="card">
           <div class="card-title">&#43; เติมเงินบัตร</div>
           <div id="topup-alert"></div>
-          <div class="fg"><div class="fl">เลือกนักเรียน</div><select id="tu-std" onchange="updateTuInfo()"><option value="">-- เลือกนักเรียน --</option></select></div>
-          <div id="tu-cur" style="display:none;background:var(--gray);padding:7px 11px;border-radius:var(--r);margin-bottom:10px;font-size:13px">ยอดปัจจุบัน: <strong id="tu-cur-bal" style="color:var(--green)"></strong></div>
+
+          <!-- สแกนบัตร หรือ ค้นหาชื่อ -->
+          <div class="fg">
+            <div class="fl">สแกนบาร์โค้ด หรือ พิมพ์ชื่อ/รหัส</div>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="tu-search" placeholder="สแกนบัตร หรือ พิมพ์ชื่อ..." autocomplete="off"
+                onkeydown="if(event.key===&#39;Enter&#39;)tuSearch()"
+                oninput="tuSearchLive(this.value)">
+              <button class="btn btn-sm" onclick="tuSearch()" style="white-space:nowrap;height:35px">ค้นหา</button>
+            </div>
+            <!-- ผลค้นหา -->
+            <div id="tu-search-results" style="display:none;border:1px solid var(--border);border-radius:var(--r);margin-top:4px;background:#fff;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
+          </div>
+
+          <!-- ข้อมูลนักเรียนที่เลือก -->
+          <div id="tu-student-card" style="display:none;background:var(--blue-l);border:1px solid #85B7EB;border-radius:var(--r);padding:10px 12px;margin-bottom:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="avatar" id="tu-av" style="flex-shrink:0"></div>
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:500" id="tu-name"></div>
+                <div style="font-size:11px;color:var(--text2)" id="tu-grade"></div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:11px;color:var(--text2)">ยอดปัจจุบัน</div>
+                <div style="font-size:20px;font-weight:700;color:var(--green)" id="tu-cur-bal2"></div>
+              </div>
+              <button onclick="tuClear()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px">&#215;</button>
+            </div>
+          </div>
+
+          <!-- ซ่อน select เดิมไว้ใช้ backend -->
+          <select id="tu-std" style="display:none"></select>
+          <div id="tu-cur" style="display:none"></div>
+
           <div class="fg"><div class="fl">จำนวนเงิน (฿)</div><input type="number" id="tu-amount" placeholder="ระบุจำนวน" min="1"></div>
           <div class="quick-btns">
-            <button class="btn" onclick="qt(50)">+50</button><button class="btn" onclick="qt(100)">+100</button>
-            <button class="btn" onclick="qt(200)">+200</button><button class="btn" onclick="qt(500)">+500</button>
+            <button class="btn" onclick="qt(50)">+50</button>
+            <button class="btn" onclick="qt(100)">+100</button>
+            <button class="btn" onclick="qt(200)">+200</button>
+            <button class="btn" onclick="qt(500)">+500</button>
             <button class="btn" onclick="qt(1000)">+1,000</button>
           </div>
           <button class="btn btn-primary" onclick="doTopup()" style="width:100%">&#10003; ยืนยันเติมเงิน</button>
@@ -890,21 +924,74 @@ function clearScan() {
 
 // ===== Topup =====
 async function initTopup() {
-  const { data } = await sb.from('students').select('id,name,grade,balance').eq('active',true).order('name');
+  const { data } = await sb.from('students').select('id,name,grade,balance,barcode').eq('active',true).order('name');
   studentsCache = data || [];
   const sel = document.getElementById('tu-std');
   sel.innerHTML = '<option value="">-- เลือกนักเรียน --</option>';
   studentsCache.forEach(s => { const o=document.createElement('option');o.value=s.id;o.textContent=s.name+' ('+s.grade+')';sel.appendChild(o); });
   loadTuHist();
+  setTimeout(function(){ var inp=document.getElementById('tu-search'); if(inp)inp.focus(); }, 200);
 }
 
 async function updateTuInfo() {
   const sid = document.getElementById('tu-std').value;
-  const div = document.getElementById('tu-cur');
-  if(!sid) { div.style.display='none'; return; }
-  const { data } = await sb.from('students').select('balance').eq('id',sid).single();
-  if(data) { div.style.display='block'; document.getElementById('tu-cur-bal').textContent=fmt(data.balance); }
+  if(!sid) return;
+  const { data } = await sb.from('students').select('balance,name,grade').eq('id',sid).single();
+  if(data) {
+    document.getElementById('tu-cur-bal2').textContent = fmt(data.balance);
+    document.getElementById('tu-name').textContent = data.name;
+    document.getElementById('tu-grade').textContent = data.grade;
+    document.getElementById('tu-av').textContent = ini(data.name);
+    document.getElementById('tu-student-card').style.display = 'block';
+  }
 }
+
+function tuSearchLive(q) {
+  if(!q || q.length < 1) { document.getElementById('tu-search-results').style.display='none'; return; }
+  q = q.toLowerCase();
+  var list = studentsCache.filter(function(s) {
+    return s.name.toLowerCase().indexOf(q) >= 0 || s.id.toLowerCase().indexOf(q) >= 0 || (s.barcode && s.barcode.indexOf(q) >= 0);
+  }).slice(0, 8);
+  var el = document.getElementById('tu-search-results');
+  if(list.length === 0) { el.style.display='none'; return; }
+  el.innerHTML = list.map(function(s) {
+    return '<div style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:10px" data-id="'+s.id+'">'
+      +'<div class="avatar" style="width:30px;height:30px;font-size:11px;flex-shrink:0">'+ini(s.name)+'</div>'
+      +'<div><div style="font-size:13px;font-weight:500">'+esc(s.name)+'</div>'
+      +'<div style="font-size:11px;color:var(--text2)">'+s.grade+' • '+s.id+'</div></div>'
+      +'<div style="margin-left:auto;font-weight:500;color:var(--green)">'+fmt(s.balance)+'</div></div>';
+  }).join('');
+  el.style.display = 'block';
+  el.querySelectorAll('[data-id]').forEach(function(row) {
+    row.addEventListener('click', function() { tuSelectStudent(row.dataset.id); });
+  });
+}
+
+async function tuSearch() {
+  var q = document.getElementById('tu-search').value.trim();
+  if(!q) return;
+  var byBarcode = studentsCache.find(function(s) { return s.barcode === q; });
+  if(byBarcode) { tuSelectStudent(byBarcode.id); return; }
+  tuSearchLive(q);
+}
+
+async function tuSelectStudent(sid) {
+  document.getElementById('tu-search-results').style.display = 'none';
+  document.getElementById('tu-search').value = '';
+  document.getElementById('tu-std').value = sid;
+  await updateTuInfo();
+  document.getElementById('tu-amount').focus();
+}
+
+function tuClear() {
+  document.getElementById('tu-std').value = '';
+  document.getElementById('tu-student-card').style.display = 'none';
+  document.getElementById('tu-search').value = '';
+  document.getElementById('tu-search-results').style.display = 'none';
+  document.getElementById('tu-amount').value = '';
+  document.getElementById('tu-search').focus();
+}
+
 
 function qt(n) { document.getElementById('tu-amount').value=n; }
 
