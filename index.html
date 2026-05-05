@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- saved from url=(0042)file:///C:/Users/tt/Downloads/index_5.html -->
+<!-- saved from url=(0042)file:///C:/Users/tt/Downloads/index_6.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SchoolPay — ระบบบัตรนักเรียน</title>
-<script src="./index_files/supabase.min.js.download"></script>
+<script src="./index_files/supabase-js@2"></script>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-d:#0C447C;--green:#3B6D11;--green-l:#EAF3DE;--red:#A32D2D;--red-l:#FCEBEB;--amber-l:#FAEEDA;--amber-d:#633806;--border:#e0e0e0;--gray:#f5f5f5;--text:#1a1a1a;--text2:#666;--text3:#999;--r:8px;--rl:12px;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -372,7 +372,9 @@ input:focus,select:focus{border-color:var(--blue);}
 let sb = null;
 
 function initSupabase(url, key) {
-  sb = window.supabase.createClient(url, key);
+  var client = window.supabase || window.Supabase || (typeof supabase !== 'undefined' ? supabase : null);
+  if(!client) { alert('Supabase library โหลดไม่ได้ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่'); return; }
+  sb = client.createClient(url, key);
 }
 
 async function saveSetup() {
