@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<!-- saved from url=(0042)file:///C:/Users/tt/Downloads/index_7.html -->
+<!-- saved from url=(0042)file:///C:/Users/tt/Downloads/index_8.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SchoolPay — ระบบบัตรนักเรียน</title>
 
+<script src="./index_files/supabase.js.download"></script>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-d:#0C447C;--green:#3B6D11;--green-l:#EAF3DE;--red:#A32D2D;--red-l:#FCEBEB;--amber-l:#FAEEDA;--amber-d:#633806;--border:#e0e0e0;--gray:#f5f5f5;--text:#1a1a1a;--text2:#666;--text3:#999;--r:8px;--rl:12px;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -107,7 +108,7 @@ input:focus,select:focus{border-color:var(--blue);}
 .setup-box button{cursor:pointer;}
 
 </style>
-<script src="./index_files/supabase.js.download"></script></head>
+</head>
 <body>
 
 
@@ -392,7 +393,9 @@ async function saveSetup() {
   const alertEl = document.getElementById('setup-alert');
   if (!url || !key) { alertEl.innerHTML = '<div class="alert alert-error">กรุณาใส่ URL และ Key</div>'; return; }
   try {
-    initSupabase(url, key);
+    var SB = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+    if(!SB) throw new Error('Supabase library ยังไม่โหลด กรุณารีเฟรช');
+    sb = SB.createClient(url, key);
     const { error } = await sb.from('students').select('id').limit(1);
     if (error) throw error;
     localStorage.setItem('sp_url', url);
@@ -1492,33 +1495,24 @@ async function _appInit() {
   }
 }
 // รอ Supabase โหลดก่อน
-if(window.supabase) {
-  _appInit();
-} else {
-  document.addEventListener('supabase_ready', _appInit);
-  // fallback: รอ 2 วินาที
-  setTimeout(function() {
-    if(typeof sb === 'undefined' || !sb) _appInit();
-  }, 2000);
+// Auto init with hardcoded credentials
+async function _appInit() {
+  try {
+    var SB = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+    if(!SB || !SB.createClient) throw new Error('not loaded');
+    var url = localStorage.getItem('sp_url') || 'https://siaxxsbszyzboaorntuv.supabase.co';
+    var key = localStorage.getItem('sp_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpYXh4c2Jzenl6Ym9hb3JudHV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODY2NDUsImV4cCI6MjA5MzQ2MjY0NX0.q7HeLis9HNLnrTKLzR9Uo0H--7ycLLoHsSHi5agkBC8';
+    sb = SB.createClient(url, key);
+    await sb.from('students').select('id').limit(1);
+    setOnline(true);
+    document.getElementById('setup-screen').style.display = 'none';
+    await showShopSelect();
+  } catch(e) {
+    setOnline(false);
+    document.getElementById('setup-screen').style.display = 'flex';
+  }
 }
-</script>
-<script>
-(function() {
-  var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';
-  s.onload = function() {
-    console.log('Supabase loaded:', typeof window.supabase);
-    // trigger init ถ้ามี saved credentials
-    var url = localStorage.getItem('sp_url');
-    var key = localStorage.getItem('sp_key');
-    if(url && key) {
-      try { initSupabase(url, key); } catch(e) {}
-      document.dispatchEvent(new Event('supabase_ready'));
-    }
-  };
-  s.onerror = function() { console.error('Failed to load Supabase'); };
-  document.head.appendChild(s);
-})();
+window.addEventListener('load', _appInit);
 </script>
 
 
