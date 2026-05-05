@@ -5,12 +5,140 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SchoolPay — ระบบบัตรนักเรียน</title>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
 <script>
-// Hardcoded credentials - ไม่ต้องตั้งค่าใหม่
+// Mini Supabase Client - ไม่ต้อง CDN
 window.SP_URL = "https://siaxxsbszyzboaorntuv.supabase.co";
 window.SP_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpYXh4c2Jzenl6Ym9hb3JudHV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODY2NDUsImV4cCI6MjA5MzQ2MjY0NX0.q7HeLis9HNLnrTKLzR9Uo0H--7ycLLoHsSHi5agkBC8";
+
+window.supabase = {
+  createClient: function(url, key) {
+    url = url.replace(/\/rest\/v1.*$/, '').replace(/\/$/, '');
+    var h = {
+      'apikey': key,
+      'Authorization': 'Bearer ' + key,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    };
+    function qb(table) {
+      var _url = url + '/rest/v1/' + table;
+      var _params = [];
+      var _headers = Object.assign({}, h);
+      var obj = {
+        select: function(cols) {
+          _params.push('select=' + (cols||'*'));
+          return obj;
+        },
+        eq: function(col, val) {
+          _params.push(col + '=eq.' + encodeURIComponent(val));
+          return obj;
+        },
+        neq: function(col, val) {
+          _params.push(col + '=neq.' + encodeURIComponent(val));
+          return obj;
+        },
+        lt: function(col, val) {
+          _params.push(col + '=lt.' + encodeURIComponent(val));
+          return obj;
+        },
+        lte: function(col, val) {
+          _params.push(col + '=lte.' + encodeURIComponent(val));
+          return obj;
+        },
+        gte: function(col, val) {
+          _params.push(col + '=gte.' + encodeURIComponent(val));
+          return obj;
+        },
+        gt: function(col, val) {
+          _params.push(col + '=gt.' + encodeURIComponent(val));
+          return obj;
+        },
+        order: function(col, opts) {
+          _params.push('order=' + col + (opts && opts.ascending === false ? '.desc' : '.asc'));
+          return obj;
+        },
+        limit: function(n) {
+          _params.push('limit=' + n);
+          return obj;
+        },
+        single: function() {
+          _headers['Accept'] = 'application/vnd.pgrst.object+json';
+          return obj.exec();
+        },
+        exec: async function() {
+          try {
+            var fullUrl = _url + (_params.length ? '?' + _params.join('&') : '');
+            var res = await fetch(fullUrl, { headers: _headers });
+            var data = await res.json();
+            if (!res.ok) return { data: null, error: data };
+            return { data: data, error: null };
+          } catch(e) { return { data: null, error: e }; }
+        },
+        then: function(resolve, reject) {
+          return obj.exec().then(resolve, reject);
+        },
+        insert: async function(body) {
+          try {
+            var res = await fetch(_url, {
+              method: 'POST', headers: _headers,
+              body: JSON.stringify(Array.isArray(body) ? body : [body])
+            });
+            var data = await res.json();
+            if (!res.ok) return { data: null, error: data };
+            return { data: data, error: null };
+          } catch(e) { return { data: null, error: e }; }
+        },
+        update: function(body) {
+          return {
+            eq: function(col, val) {
+              _params.push(col + '=eq.' + encodeURIComponent(val));
+              return {
+                exec: async function() {
+                  try {
+                    var fullUrl = _url + '?' + _params.join('&');
+                    var res = await fetch(fullUrl, {
+                      method: 'PATCH', headers: _headers,
+                      body: JSON.stringify(body)
+                    });
+                    var data = res.status === 204 ? [] : await res.json();
+                    if (!res.ok) return { data: null, error: data };
+                    return { data: data, error: null };
+                  } catch(e) { return { data: null, error: e }; }
+                },
+                then: function(resolve, reject) {
+                  return this.exec().then(resolve, reject);
+                }
+              };
+            }
+          };
+        },
+        delete: function() {
+          return {
+            eq: function(col, val) {
+              _params.push(col + '=eq.' + encodeURIComponent(val));
+              return {
+                exec: async function() {
+                  try {
+                    var fullUrl = _url + '?' + _params.join('&');
+                    var res = await fetch(fullUrl, { method: 'DELETE', headers: _headers });
+                    return { data: null, error: res.ok ? null : await res.json() };
+                  } catch(e) { return { data: null, error: e }; }
+                },
+                then: function(resolve, reject) { return this.exec().then(resolve, reject); }
+              };
+            }
+          };
+        }
+      };
+      return obj;
+    }
+    return {
+      from: function(table) { return qb(table); }
+    };
+  }
+};
 </script>
+
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-d:#0C447C;--green:#3B6D11;--green-l:#EAF3DE;--red:#A32D2D;--red-l:#FCEBEB;--amber-l:#FAEEDA;--amber-d:#633806;--border:#e0e0e0;--gray:#f5f5f5;--text:#1a1a1a;--text2:#666;--text3:#999;--r:8px;--rl:12px;}
 *{box-sizing:border-box;margin:0;padding:0;}
