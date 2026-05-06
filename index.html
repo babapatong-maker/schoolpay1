@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_16.html -->
+<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_18.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1161,21 +1161,53 @@ async function initHistory() {
 
 async function loadHistory() {
   document.getElementById('hi-list').innerHTML='<div class="loading">&#9203; กำลังโหลด...</div>';
-  let q = sb.from('transactions').select('*,students(name),shops(name)').order('created_at',{ascending:false}).limit(100);
-  const sid=document.getElementById('hi-std').value;
-  const type=document.getElementById('hi-type').value;
-  const date=document.getElementById('hi-date').value;
+  var q = sb.from('transactions').select('*,students(name),shops(name)').order('created_at',{ascending:false}).limit(100);
+  var sid=document.getElementById('hi-std').value;
+  var type=document.getElementById('hi-type').value;
+  var date=document.getElementById('hi-date').value;
   if(sid) q=q.eq('student_id',sid);
   if(type) q=q.eq('type',type);
   if(date) q=q.gte('created_at',date+'T00:00:00').lt('created_at',date+'T23:59:59');
-  const { data } = await q;
-  const el = document.getElementById('hi-list');
+  var res = await q;
+  var data = res.data;
+  var el = document.getElementById('hi-list');
   if(!data||data.length===0){el.innerHTML='<div class="empty">ไม่มีรายการ</div>';return;}
-  el.innerHTML = data.map(tx=>{
-    const tp=tx.type==='topup';
-    const dt=new Date(tx.created_at).toLocaleString('th-TH',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'2-digit'});
-    return `<div class="list-row"><div class="tx-dot ${tp?'in':'out'}"></div><div class="row-info"><div class="row-name">${esc(tx.students?.name||'?')} — ${esc(tx.shops?.name||'เติมเงิน')}</div><div class="row-sub">${dt}</div></div><div style="text-align:right"><div class="tx-amount ${tp?'in':'out'}">${tp?'+':'−'}${fmt(tx.amount)}</div><div style="font-size:11px;color:var(--text3)">ยอด: ${fmt(tx.balance_after)}</div></div></div>`;
-  }).join('');
+  el.innerHTML='';
+  var isAdmin = currentStaff && (currentStaff.role==='admin' || currentStaff.role==='cashier');
+  data.forEach(function(tx) {
+    var tp = tx.type==='topup';
+    var voided = tx.voided;
+    var dt = new Date(tx.created_at).toLocaleString('th-TH',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'2-digit'});
+    var row = document.createElement('div');
+    row.className = 'list-row';
+    row.style.opacity = voided ? '0.5' : '1';
+    var voidBadge = voided ? '<span style="background:#f0f0f0;color:#999;font-size:10px;padding:1px 6px;border-radius:99px;margin-left:4px">ยกเลิกแล้ว</span>' : '';
+    var cancelBtn = (!voided && isAdmin) ? '<button style="font-size:11px;padding:3px 8px;border-radius:4px;cursor:pointer;border:1px solid #F09595;background:#FCEBEB;color:#A32D2D;margin-top:4px;display:block" data-void="'+tx.id+'" data-amount="'+tx.amount+'" data-name="'+esc(tx.students?.name||'?')+'" data-type="'+tx.type+'">ยกเลิก</button>' : '';
+    row.innerHTML = '<div class="tx-dot '+(tp?'in':'out')+'"></div>'
+      +'<div class="row-info">'
+      +'<div class="row-name">'+esc(tx.students?.name||'?')+' — '+esc(tx.shops?.name||(tp?'เติมเงิน':'ซื้อสินค้า'))+voidBadge+'</div>'
+      +'<div class="row-sub">'+dt+'</div>'
+      +'</div>'
+      +'<div style="text-align:right">'
+      +'<div class="tx-amount '+(tp?'in':'out')+'">'+(tp?'+':'−')+fmt(tx.amount)+'</div>'
+      +'<div style="font-size:11px;color:var(--text3)">ยอด: '+fmt(tx.balance_after)+'</div>'
+      +cancelBtn
+      +'</div>';
+    el.appendChild(row);
+    if(!voided && isAdmin) {
+      var btn = row.querySelector('[data-void]');
+      if(btn) {
+        btn.addEventListener('click', function() {
+          voidTransaction(
+            parseInt(this.getAttribute('data-void')),
+            parseFloat(this.getAttribute('data-amount')),
+            this.getAttribute('data-name'),
+            this.getAttribute('data-type')
+          );
+        });
+      }
+    }
+  });
 }
 
 function clearHiFilter() {
@@ -1377,44 +1409,52 @@ async function verifyConfirmPIN() {
 }
 
 // ===== Void Transaction =====
-async function voidTransaction(txId, amount, studentName) {
-  confirmWithPIN('การยกเลิกรายการ', async () => {
-    const reason = prompt(`ยกเลิกรายการ ${fmt(amount)} ของ ${studentName}\nกรุณาระบุเหตุผล:`);
-    if(reason === null) return;
-    // ดึงข้อมูล transaction
-    const { data: tx } = await sb.from('transactions').select('*').eq('id', txId).single();
-    if(!tx || tx.voided) { alert('รายการนี้ถูกยกเลิกแล้ว'); return; }
-    // คืนเงินให้นักเรียน (ถ้าเป็น purchase)
-    if(tx.type === 'purchase') {
-      const { data: st } = await sb.from('students').select('balance').eq('id', tx.student_id).single();
-      const newBal = Number(st.balance) + Number(tx.amount);
-      await sb.from('students').update({ balance: newBal }).eq('id', tx.student_id);
-      // บันทึก reverse transaction
-      await sb.from('transactions').insert({
-        student_id: tx.student_id, shop_id: tx.shop_id,
-        type: 'topup', amount: tx.amount, balance_after: newBal,
-        note: 'ยกเลิกรายการ #' + txId + (reason ? ' - ' + reason : ''),
-        staff_id: currentStaff?.id
-      });
-    } else if(tx.type === 'topup') {
-      const { data: st } = await sb.from('students').select('balance').eq('id', tx.student_id).single();
-      const newBal = Math.max(0, Number(st.balance) - Number(tx.amount));
-      await sb.from('students').update({ balance: newBal }).eq('id', tx.student_id);
-      await sb.from('transactions').insert({
-        student_id: tx.student_id, type: 'purchase', amount: tx.amount, balance_after: newBal,
-        note: 'ยกเลิกเติมเงิน #' + txId + (reason ? ' - ' + reason : ''),
-        staff_id: currentStaff?.id
-      });
-    }
-    // mark voided
-    await sb.from('transactions').update({
-      voided: true, void_reason: reason || '',
-      voided_by: currentStaff?.id, voided_at: new Date().toISOString()
-    }).eq('id', txId);
-    alert('ยกเลิกรายการเรียบร้อย เงินถูกคืนให้นักเรียนแล้ว');
-    loadHistory();
+async function voidTransaction(txId, amount, studentName, txType) {
+  if(!confirm('ยกเลิกรายการ '+fmt(amount)+' ของ '+studentName+'?')) return;
+  var reason = prompt('ระบุเหตุผล (ไม่บังคับ):') || '';
+
+  // ดึงข้อมูล transaction
+  var txRes = await sb.from('transactions').select('*').eq('id', txId).single();
+  if(!txRes.data) { alert('ไม่พบรายการ'); return; }
+  var tx = txRes.data;
+  if(tx.voided) { alert('รายการนี้ถูกยกเลิกแล้ว'); return; }
+
+  // ดึงยอดเงินปัจจุบัน
+  var stRes = await sb.from('students').select('balance').eq('id', tx.student_id).single();
+  if(!stRes.data) { alert('ไม่พบนักเรียน'); return; }
+  var curBal = Number(stRes.data.balance);
+  var newBal;
+
+  if(tx.type === 'topup') {
+    // ยกเลิกเติมเงิน = หักเงินคืน
+    newBal = Math.max(0, curBal - Number(tx.amount));
+  } else {
+    // ยกเลิกซื้อ = คืนเงิน
+    newBal = curBal + Number(tx.amount);
+  }
+
+  // อัปเดตยอดเงินนักเรียน
+  await sb.from('students').update({balance: newBal}).eq('id', tx.student_id);
+
+  // mark voided
+  await sb.from('transactions').update({voided: true, void_reason: reason}).eq('id', txId);
+
+  // บันทึก reverse transaction
+  var note = (tx.type==='topup' ? 'ยกเลิกเติมเงิน' : 'ยกเลิกซื้อสินค้า') + ' #'+txId + (reason?' - '+reason:'');
+  await sb.from('transactions').insert({
+    student_id: tx.student_id,
+    shop_id: tx.shop_id,
+    type: tx.type==='topup' ? 'purchase' : 'topup',
+    amount: tx.amount,
+    balance_after: newBal,
+    note: note,
+    staff_id: currentStaff ? currentStaff.id : null
   });
+
+  alert('✓ ยกเลิกรายการแล้ว ยอดเงินนักเรียนอัปเดตเป็น '+fmt(newBal));
+  loadHistory();
 }
+
 
 // ===== Staff Management =====
 async function loadStaffMgmt() {
