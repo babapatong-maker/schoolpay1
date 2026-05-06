@@ -352,7 +352,7 @@ input:focus,select:focus{border-color:var(--blue);}
 </div>
 
 <!-- Setup Screen (แสดงครั้งแรกถ้ายังไม่ได้ตั้งค่า) -->
-<div class="setup-screen" id="setup-screen" style="display:none">
+<div class="setup-screen" id="setup-screen" style="display:none!important">
   <div class="setup-box">
     <div class="setup-title">&#127979; ตั้งค่า SchoolPay</div>
     <div class="setup-sub">ใส่ข้อมูล Supabase เพื่อเชื่อมต่อฐานข้อมูล<br>ทำครั้งเดียว จากนั้นระบบจะจำไว้อัตโนมัติ</div>
@@ -1276,19 +1276,29 @@ async function voidTransaction(txId, amount, studentName, txType) {
 
 // ===== Init =====
 async function _appInit() {
+  var SB = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+  if(!SB || !SB.createClient) {
+    setTimeout(_appInit, 500);
+    return;
+  }
   try {
-    var SB = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
-    if(!SB || !SB.createClient) { setTimeout(_appInit, 1000); return; }
-    var url = window.SP_URL || 'https://siaxxsbszyzboaorntuv.supabase.co';
-    var key = window.SP_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpYXh4c2Jzenl6Ym9hb3JudHV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODY2NDUsImV4cCI6MjA5MzQ2MjY0NX0.q7HeLis9HNLnrTKLzR9Uo0H--7ycLLoHsSHi5agkBC8';
+    // ใช้ hardcoded credentials เสมอ
+    var url = 'https://siaxxsbszyzboaorntuv.supabase.co';
+    var key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpYXh4c2Jzenl6Ym9hb3JudHV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODY2NDUsImV4cCI6MjA5MzQ2MjY0NX0.q7HeLis9HNLnrTKLzR9Uo0H--7ycLLoHsSHi5agkBC8';
     sb = SB.createClient(url, key);
-    await sb.from('students').select('id').limit(1);
+    // ทดสอบการเชื่อมต่อ
+    var test = await sb.from('students').select('id').limit(1);
+    if(test.error) throw test.error;
     setOnline(true);
+    // ซ่อน setup-screen เสมอ
     document.getElementById('setup-screen').style.display = 'none';
+    // ไปหน้าเลือกร้านค้า
     await showShopSelect();
   } catch(e) {
+    console.error('Connection error:', e);
     setOnline(false);
-    document.getElementById('setup-screen').style.display = 'flex';
+    // retry อีก 3 วินาที แทนที่จะแสดง setup-screen
+    setTimeout(_appInit, 3000);
   }
 }
 
