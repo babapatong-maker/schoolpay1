@@ -1328,7 +1328,7 @@ async function selectShop(shop) {
     if(badge) badge.style.display = 'block';
     var nameEl = document.getElementById('current-shop-name');
     if(nameEl) nameEl.textContent = shop.name;
-    applyRolePermissions(currentStaff ? currentStaff.role : 'shop');
+    // ซ่อนเมนูที่ไม่ใช่ของร้านค้า — เสมอ ไม่ว่าจะ login หรือไม่
     document.querySelectorAll('.nav-item').forEach(function(el) {
       var p = el.dataset.page;
       if(p === 'scan' || p === 'history') el.style.display = 'flex';
