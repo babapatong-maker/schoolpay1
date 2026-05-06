@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_12.html -->
+<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_14.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1542,15 +1542,16 @@ async function doLoginOnce() {
     // ซ่อน/แสดงเมนูตาม role
     applyRolePermissions(res.data.role);
     // ถ้าเป็น shop staff ให้เข้าหน้าสแกนของร้านตัวเองเลย
+    console.log('Role:', res.data.role, 'ShopID:', res.data.shop_id);
     if(res.data.role === 'shop' && res.data.shop_id) {
       var shopRes = await sb.from('shops').select('*').eq('id', res.data.shop_id).single();
+      console.log('ShopRes:', JSON.stringify(shopRes));
       if(shopRes.data) {
         await selectShop(shopRes.data);
       } else {
         await showShopSelect();
       }
     } else {
-      // admin และ cashier เลือกร้านเอง
       await showShopSelect();
     }
   } catch(e) {
