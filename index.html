@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_19.html -->
+<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_21.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -275,11 +275,11 @@ input:focus,select:focus{border-color:var(--blue);}
 </div>
 
 <!-- Shop Select Screen -->
-<div class="setup-screen" id="shop-screen" style="display: flex;">
+<div class="setup-screen" id="shop-screen" style="display:none">
   <div class="setup-box" style="width:480px">
     <div class="setup-title">🏪 เลือกร้านค้า</div>
     <div class="setup-sub">เลือกร้านค้าของคุณก่อนเริ่มใช้งาน<br>สามารถเปลี่ยนได้ตลอดเวลาโดยกดที่ชื่อร้านมุมบน</div>
-    <div id="shop-select-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"><div class="shop-card"><div class="shop-card-icon">🏪</div><div><div class="shop-card-name">ร้านเครื่องเขียน</div><div class="shop-card-cat">อุปกรณ์การเรียน</div></div></div><div class="shop-card"><div class="shop-card-icon">🏪</div><div><div class="shop-card-name">ร้านน้ำ</div><div class="shop-card-cat">เครื่องดื่ม</div></div></div><div class="shop-card"><div class="shop-card-icon">🏪</div><div><div class="shop-card-name">ร้านลูกชิ้น</div><div class="shop-card-cat">อาหาร</div></div></div><div class="shop-card"><div class="shop-card-icon">🏪</div><div><div class="shop-card-name">โรงอาหาร</div><div class="shop-card-cat">อาหาร</div></div></div></div>
+    <div id="shop-select-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
     <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
       <div style="font-size:12px;color:var(--text2);margin-bottom:8px">หรือเข้าในฐานะ</div>
       <button class="btn btn-primary" onclick="showLoginScreen()" style="width:100%;background:#1e2a3a;border-color:#1e2a3a">👤 เข้าสู่ระบบพนักงาน (แอดมิน/แคชเชียร์)</button>
@@ -288,7 +288,7 @@ input:focus,select:focus{border-color:var(--blue);}
 </div>
 
 <!-- Setup Screen (แสดงครั้งแรกถ้ายังไม่ได้ตั้งค่า) -->
-<div class="setup-screen" id="setup-screen" style="display:none">
+<div class="setup-screen" id="setup-screen" style="display: flex;">
   <div class="setup-box">
     <div class="setup-title">🏫 ตั้งค่า SchoolPay</div>
     <div class="setup-sub">ใส่ข้อมูล Supabase เพื่อเชื่อมต่อฐานข้อมูล<br>ทำครั้งเดียว จากนั้นระบบจะจำไว้อัตโนมัติ</div>
@@ -323,7 +323,7 @@ input:focus,select:focus{border-color:var(--blue);}
     <div class="nav-item admin-only" data-page="staffmgmt"><span class="nav-icon">👤</span> จัดการพนักงาน</div>
   </div>
   <div class="sidebar-footer">
-    <div class="ver"><span class="status-dot online" id="status-dot"></span><span id="status-text">เชื่อมต่อแล้ว</span></div>
+    <div class="ver"><span class="status-dot" id="status-dot"></span><span id="status-text">ออฟไลน์</span></div>
   </div>
 </div>
 
@@ -1132,1094 +1132,95 @@ async function addSt() {
 }
 
 function showEditSt(s) {
-  const m=document.createElement('div');m.className='overlay';
-  m.innerHTML=`<div class="modal"><div class="modal-title">✎ แก้ไขข้อมูลนักเรียน</div><div class="fg"><div class="fl">ชื่อ-นามสกุล</div><input id="m-name" type="text"></div><div class="fg"><div class="fl">บาร์โค้ด</div><input id="m-bc" type="text"></div><div class="fg"><div class="fl">ห้องเรียน</div><input id="m-grade" type="text"></div><div class="fg"><div class="fl">เบอร์โทรผู้ปกครอง</div><input id="m-phone" type="text"></div><div class="modal-btns"><button class="btn" id="mc">ยกเลิก</button><button class="btn btn-primary" id="mo">บันทึก</button></div></div>`;
+  var m=document.createElement('div'); m.className='overlay';
+  var hasNFC = s.nfc_uid ? true : false;
+  m.innerHTML='<div class="modal"><div class="modal-title">✎ แก้ไขข้อมูลนักเรียน</div>'
+    +'<div class="fg"><div class="fl">ชื่อ-นามสกุล</div><input id="m-name" type="text"></div>'
+    +'<div class="fg"><div class="fl">บาร์โค้ด</div><input id="m-bc" type="text"></div>'
+    +'<div class="fg"><div class="fl">ห้องเรียน</div><input id="m-grade" type="text"></div>'
+    +'<div class="fg"><div class="fl">เบอร์โทร</div><input id="m-phone" type="text"></div>'
+    +'<div style="background:var(--gray);border-radius:var(--r);padding:10px 12px;margin-bottom:12px">'
+    +'<div style="font-size:12px;color:var(--text2);margin-bottom:6px">บัตร NFC</div>'
+    +(hasNFC
+      ? '<div style="display:flex;align-items:center;justify-content:space-between">'
+        +'<div style="font-size:12px;color:var(--text2)">&#128245; UID: <strong>'+esc(s.nfc_uid)+'</strong></div>'
+        +'<button class="btn btn-danger btn-sm" id="clear-nfc-btn">ยกเลิกบัตร</button>'
+        +'</div>'
+      : '<div style="font-size:12px;color:var(--text3)">ยังไม่ได้ลงทะเบียนบัตร NFC</div>'
+    )
+    +'</div>'
+    +'<div class="modal-btns"><button class="btn" id="mc">ยกเลิก</button><button class="btn btn-primary" id="mo">บันทึก</button></div>'
+    +'</div>';
   document.getElementById('modal-root').appendChild(m);
-  m.querySelector('#m-name').value=s.name; m.querySelector('#m-bc').value=s.barcode;
-  m.querySelector('#m-grade').value=s.grade; m.querySelector('#m-phone').value=s.phone;
-  m.querySelector('#mc').addEventListener('click',closeModal);
-  m.querySelector('#mo').addEventListener('click',()=>editSt(s.id));
-}
-
-async function editSt(id) {
-  const name=document.getElementById('m-name').value.trim();
-  const barcode=document.getElementById('m-bc').value.trim();
-  const grade=document.getElementById('m-grade').value.trim();
-  const phone=document.getElementById('m-phone').value.trim();
-  const {error}=await sb.from('students').update({name,barcode,grade,phone}).eq('id',id);
-  if(error){alert('เกิดข้อผิดพลาด: '+error.message);return;}
-  closeModal();loadStudents();
-}
-
-async function delSt(id,name) {
-  if(!confirm('ลบ '+name+' ออกจากระบบ?')) return;
-  await sb.from('students').update({active:false}).eq('id',id);
-  loadStudents();
-}
-
-// ===== History =====
-async function initHistory() {
-  const { data } = await sb.from('students').select('id,name').eq('active',true).order('name');
-  const sel = document.getElementById('hi-std');
-  sel.innerHTML = '<option value="">นักเรียนทั้งหมด</option>';
-  (data||[]).forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o);});
-  loadHistory();
-}
-
-async function loadHistory() {
-  document.getElementById('hi-list').innerHTML='<div class="loading">&#9203; กำลังโหลด...</div>';
-  var q = sb.from('transactions').select('*,students(name),shops(name)').order('created_at',{ascending:false}).limit(100);
-  var sid=document.getElementById('hi-std').value;
-  var type=document.getElementById('hi-type').value;
-  var date=document.getElementById('hi-date').value;
-  if(sid) q=q.eq('student_id',sid);
-  if(type) q=q.eq('type',type);
-  if(date) q=q.gte('created_at',date+'T00:00:00').lt('created_at',date+'T23:59:59');
-  var res = await q;
-  var data = res.data;
-  var el = document.getElementById('hi-list');
-  if(!data||data.length===0){el.innerHTML='<div class="empty">ไม่มีรายการ</div>';return;}
-  el.innerHTML='';
-  var isAdmin = currentStaff && (currentStaff.role==='admin' || currentStaff.role==='cashier');
-  data.forEach(function(tx) {
-    var tp = tx.type==='topup';
-    var voided = tx.voided;
-    var dt = new Date(tx.created_at).toLocaleString('th-TH',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'2-digit'});
-    var row = document.createElement('div');
-    row.className = 'list-row';
-    row.style.opacity = voided ? '0.5' : '1';
-    var voidBadge = voided ? '<span style="background:#f0f0f0;color:#999;font-size:10px;padding:1px 6px;border-radius:99px;margin-left:4px">ยกเลิกแล้ว</span>' : '';
-    var cancelBtn = (!voided && isAdmin) ? '<button style="font-size:11px;padding:3px 8px;border-radius:4px;cursor:pointer;border:1px solid #F09595;background:#FCEBEB;color:#A32D2D;margin-top:4px;display:block" data-void="'+tx.id+'" data-amount="'+tx.amount+'" data-name="'+esc(tx.students?.name||'?')+'" data-type="'+tx.type+'">ยกเลิก</button>' : '';
-    row.innerHTML = '<div class="tx-dot '+(tp?'in':'out')+'"></div>'
-      +'<div class="row-info">'
-      +'<div class="row-name">'+esc(tx.students?.name||'?')+' — '+esc(tx.shops?.name||(tp?'เติมเงิน':'ซื้อสินค้า'))+voidBadge+'</div>'
-      +'<div class="row-sub">'+dt+'</div>'
-      +'</div>'
-      +'<div style="text-align:right">'
-      +'<div class="tx-amount '+(tp?'in':'out')+'">'+(tp?'+':'−')+fmt(tx.amount)+'</div>'
-      +'<div style="font-size:11px;color:var(--text3)">ยอด: '+fmt(tx.balance_after)+'</div>'
-      +cancelBtn
-      +'</div>';
-    el.appendChild(row);
-    if(!voided && isAdmin) {
-      var btn = row.querySelector('[data-void]');
-      if(btn) {
-        btn.addEventListener('click', function() {
-          voidTransaction(
-            parseInt(this.getAttribute('data-void')),
-            parseFloat(this.getAttribute('data-amount')),
-            this.getAttribute('data-name'),
-            this.getAttribute('data-type')
-          );
-        });
+  m.querySelector('#m-name').value = s.name;
+  m.querySelector('#m-bc').value = s.barcode;
+  m.querySelector('#m-grade').value = s.grade;
+  m.querySelector('#m-phone').value = s.phone || '';
+  m.querySelector('#mc').addEventListener('click', closeModal);
+  m.querySelector('#mo').addEventListener('click', function() { editSt(s.id); });
+  if(hasNFC) {
+    m.querySelector('#clear-nfc-btn').addEventListener('click', function() {
+      if(confirm('ยกเลิกบัตร NFC ของ '+s.name+'?')) {
+        clearNFCCard(s.id);
       }
-    }
-  });
-}
-
-function clearHiFilter() {
-  document.getElementById('hi-std').value='';
-  document.getElementById('hi-type').value='';
-  document.getElementById('hi-date').value='';
-  loadHistory();
-}
-
-// ===== Shops =====
-async function loadShops() {
-  const { data } = await sb.from('shops').select('*').order('name');
-  shopsCache = data || [];
-  const el = document.getElementById('sh-list');
-  if(!data||data.length===0){el.innerHTML='<div class="empty">ยังไม่มีร้านค้า</div>';return;}
-  el.innerHTML='';
-  (data||[]).forEach(function(s) {
-    var row=document.createElement('div'); row.className='list-row';
-    row.innerHTML='<div class="shop-icon">&#127978;</div>'
-      +'<div class="row-info"><div class="row-name">'+esc(s.name)+'</div><div class="row-sub">'+s.id+' • '+s.category+'</div></div>'
-      +'<span class="badge '+(s.active?'badge-on':'badge-off')+'">'+(s.active?'เปิด':'ปิด')+'</span>'
-      +'<div class="row-actions">'
-      +'<button class="btn btn-sm" data-tog="'+s.id+'" data-active="'+(s.active?'1':'0')+'">'+(s.active?'ปิดร้าน':'เปิดร้าน')+'</button>'
-      +'<button class="btn btn-danger btn-sm" data-del="'+s.id+'" data-name="'+esc(s.name)+'">ลบ</button>'
-      +'</div>';
-    el.appendChild(row);
-    row.querySelector('[data-tog]').addEventListener('click', function() {
-      var btn = this;
-      toggleShop(btn.getAttribute('data-tog'), btn.getAttribute('data-active') !== '1');
     });
-    row.querySelector('[data-del]').addEventListener('click', function() {
-      delShop(this.getAttribute('data-del'), this.getAttribute('data-name'));
-    });
-  });
-}
-
-function showAddShop() {
-  const m=document.createElement('div');m.className='overlay';
-  m.innerHTML=`<div class="modal"><div class="modal-title">+ เพิ่มร้านค้าใหม่</div><div class="fg"><div class="fl">ชื่อร้านค้า *</div><input id="m-sn" type="text" placeholder="เช่น โรงอาหาร"></div><div class="fg"><div class="fl">ประเภท</div><select id="m-sc"><option>อาหาร</option><option>เครื่องดื่ม</option><option>อุปกรณ์การเรียน</option><option>ทั่วไป</option></select></div><div class="modal-btns"><button class="btn" id="mc">ยกเลิก</button><button class="btn btn-primary" id="mo">เพิ่มร้านค้า</button></div></div>`;
-  document.getElementById('modal-root').appendChild(m);
-  m.querySelector('#mc').addEventListener('click',closeModal);
-  m.querySelector('#mo').addEventListener('click',addShop);
-}
-
-async function addShop() {
-  const name=document.getElementById('m-sn').value.trim();
-  if(!name)return;
-  const id='SH'+Date.now().toString().slice(-4);
-  await sb.from('shops').insert({id,name,category:document.getElementById('m-sc').value,active:true});
-  closeModal();loadShops();
-}
-
-async function toggleShop(id,active) { await sb.from('shops').update({active}).eq('id',id); loadShops(); }
-async function delShop(id,name) { if(!confirm('ลบร้าน '+name+' ?'))return; await sb.from('shops').delete().eq('id',id); loadShops(); }
-
-// ===== Export CSV =====
-async function exportCSV() {
-  const { data } = await sb.from('transactions').select('*,students(name,id),shops(name)').order('created_at',{ascending:false});
-  if(!data||data.length===0){alert('ไม่มีข้อมูล');return;}
-  const q='"';
-  const rows = data.map(tx=>{
-    const dt=new Date(tx.created_at).toLocaleString('th-TH');
-    return `${dt},${q+(tx.students?.name||'?')+q},${tx.student_id},${tx.type==='topup'?'เติมเงิน':'ซื้อสินค้า'},${tx.amount},${tx.balance_after},${q+(tx.shops?.name||'')+q}`;
-  });
-  const csv='\uFEFF'+'วันเวลา,ชื่อนักเรียน,รหัส,ประเภท,จำนวนเงิน,ยอดหลัง,ร้านค้า\n'+rows.join('\n');
-  const b=new Blob([csv],{type:'text/csv;charset=utf-8'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='schoolpay-'+td()+'.csv';a.click();
-}
-
-// ===== Excel Import =====
-function downloadTemplate() {
-  const csv='\uFEFF'+'ชื่อ-นามสกุล,บาร์โค้ด,ห้องเรียน,เบอร์โทรผู้ปกครอง,ยอดเงินเริ่มต้น\nด.ช. สมชาย ใจดี,6100010,ม.1/1,0812345678,200';
-  const b=new Blob([csv],{type:'text/csv;charset=utf-8'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='template.csv';a.click();
-}
-
-function importExcel() {
-  const inp=document.createElement('input');inp.type='file';inp.accept='.xlsx,.xls,.csv';
-  inp.onchange=e=>{
-    const f=e.target.files[0];if(!f)return;
-    const r=new FileReader();
-    if(f.name.toLowerCase().endsWith('.csv')){r.onload=ev=>parseCsv(ev.target.result);r.readAsText(f,'UTF-8');}
-    else{r.onload=ev=>parseXlsx(ev.target.result);r.readAsArrayBuffer(f);}
-  };inp.click();
-}
-
-function parseCsv(text) {
-  if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
-  const lines=text.split(/\r?\n/).filter(l=>l.trim());
-  if(lines.length<2){alert('ไฟล์ว่างเปล่า');return;}
-  const header=lines[0].split(',').map(h=>h.trim().replace(/"/g,''));
-  const rows=lines.slice(1).map(line=>{
-    const cols=[]; let cur='',inQ=false;
-    for(let c of line){if(c==='"')inQ=!inQ;else if(c===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=c;}
-    cols.push(cur.trim());return cols;
-  });
-  showImportPreview(header,rows);
-}
-
-function parseXlsx(buf) {
-  if(typeof XLSX==='undefined'){
-    const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
-    s.onload=()=>alert('โหลด library เสร็จ กรุณาเลือกไฟล์ใหม่');document.head.appendChild(s);
-    alert('กำลังโหลด library Excel...');return;
   }
-  const wb=XLSX.read(buf,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];
-  const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-  const header=data[0].map(h=>String(h).trim());
-  const rows=data.slice(1).filter(r=>r.some(c=>c!=='')).map(r=>r.map(c=>String(c).trim()));
-  showImportPreview(header,rows);
 }
 
-function detectCol(header,kws){
-  const h=header.map(x=>x.toLowerCase());
-  for(const kw of kws){const i=h.findIndex(x=>x.includes(kw));if(i>=0)return i;}
-  return -1;
-}
-
-function showImportPreview(header,rows) {
-  const iN=detectCol(header,['ชื่อ','name']),iB=detectCol(header,['บาร์โค้ด','barcode','รหัส']);
-  const iG=detectCol(header,['ห้อง','grade']),iP=detectCol(header,['โทร','phone']),iBal=detectCol(header,['ยอด','balance']);
-  const m=document.createElement('div');m.className='overlay';
-  const opts=sel=>'<option value="-1">(ข้าม)</option>'+header.map((h,i)=>`<option value="${i}"${sel===i?' selected':''}>${esc(h)}</option>`).join('');
-  const tH='<tr>'+header.map(h=>`<th style="padding:5px 8px;background:#f5f5f5;border:1px solid #ddd;font-size:12px">${esc(h)}</th>`).join('')+'</tr>';
-  const tB=rows.slice(0,5).map(r=>'<tr>'+r.map(c=>`<td style="padding:4px 8px;border:1px solid #eee;font-size:12px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c)}</td>`).join('')+'</tr>').join('');
-  m.innerHTML=`<div class="modal" style="width:540px;max-width:95vw"><div class="modal-title">&#128202; นำเข้าจาก Excel</div><p style="font-size:12px;color:var(--text2);margin-bottom:12px">พบ <strong>${rows.length} แถว</strong></p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"><div><div class="fl">ชื่อ *</div><select id="col-name" style="margin:0">${opts(iN)}</select></div><div><div class="fl">บาร์โค้ด *</div><select id="col-bc" style="margin:0">${opts(iB)}</select></div><div><div class="fl">ห้อง</div><select id="col-grade" style="margin:0">${opts(iG)}</select></div><div><div class="fl">เบอร์โทร</div><select id="col-phone" style="margin:0">${opts(iP)}</select></div><div><div class="fl">ยอดเงิน</div><select id="col-bal" style="margin:0">${opts(iBal)}</select></div><div><div class="fl">บาร์โค้ดซ้ำ</div><select id="col-dup" style="margin:0"><option value="skip">ข้าม</option><option value="update">อัปเดต</option></select></div></div><div style="overflow-x:auto;border:1px solid #ddd;border-radius:var(--r);margin-bottom:12px"><table style="border-collapse:collapse;width:100%">${tH}${tB}</table></div><div id="import-alert"></div><div class="modal-btns"><button class="btn" id="ic">ยกเลิก</button><button class="btn btn-primary" id="io">&#10003; นำเข้า ${rows.length} รายการ</button></div></div>`;
-  document.getElementById('modal-root').appendChild(m);
-  m.querySelector('#ic').addEventListener('click',closeModal);
-  m.querySelector('#io').addEventListener('click',()=>doImport(rows));
-}
-
-async function doImport(rows) {
-  const iN=parseInt(document.getElementById('col-name').value),iB=parseInt(document.getElementById('col-bc').value);
-  const iG=parseInt(document.getElementById('col-grade').value),iP=parseInt(document.getElementById('col-phone').value),iBal=parseInt(document.getElementById('col-bal').value);
-  const dup=document.getElementById('col-dup').value;
-  if(iN<0||iB<0){document.getElementById('import-alert').innerHTML='<div class="alert alert-error">กรุณาเลือกคอลัมน์ ชื่อ และ บาร์โค้ด</div>';return;}
-  let added=0,updated=0,skipped=0;
-  for(const row of rows){
-    const name=(row[iN]||'').trim(),barcode=String(row[iB]||'').trim().replace(/\.0+$/,'');
-    if(!name||!barcode)continue;
-    const grade=iG>=0?(row[iG]||'').trim():'',phone=iP>=0?String(row[iP]||'').trim().replace(/\.0+$/,''):'',balance=iBal>=0?parseFloat(row[iBal])||0:0;
-    const {data:ex}=await sb.from('students').select('id').eq('barcode',barcode).eq('active',true).single();
-    if(ex){
-      if(dup==='update'){await sb.from('students').update({name,grade,phone}).eq('id',ex.id);updated++;}
-      else skipped++;
-    } else {
-      const id='STD'+Date.now().toString().slice(-6)+Math.floor(Math.random()*100);
-      await sb.from('students').insert({id,name,grade,barcode,phone,balance,active:true});
-      if(balance>0)await sb.from('transactions').insert({student_id:id,type:'topup',amount:balance,balance_after:balance,note:'ยอดเริ่มต้น'});
-      added++;
-    }
-  }
+async function clearNFCCard(sid) {
+  var res = await sb.from('students').update({nfc_uid: null}).eq('id', sid);
+  if(res.error) { alert('เกิดข้อผิดพลาด: ' + res.error.message); return; }
+  var cached = studentsCache.find(function(s) { return s.id === sid; });
+  if(cached) cached.nfc_uid = null;
   closeModal();
-  alert(`✓ นำเข้าเสร็จ — เพิ่มใหม่ ${added} คน${updated>0?`, อัปเดต ${updated} คน`:''}${skipped>0?`, ข้าม ${skipped} คน`:''}`);
+  alert('✓ ยกเลิกบัตร NFC เรียบร้อยแล้ว');
   loadStudents();
-}
-
-
-
-// ===== Staff & Login System =====
-let currentStaff = null;
-
-// login/logout ไม่ใช้แล้ว — ใช้ PIN per-action แทน
-function doLogin() {}
-function doLogout() {}
-function applyStaffPermissions() {}
-
-// ===== PIN Confirm Modal (ใส่ PIN ก่อนเติมเงิน) =====
-function confirmWithPIN(actionLabel, callback) {
-  const m = document.createElement('div'); m.className = 'overlay';
-  const inner = document.createElement('div'); inner.className = 'modal'; inner.style.width = '340px';
-  inner.innerHTML = '<div class="modal-title">&#128274; ' + actionLabel + '</div>'
-    + '<div style="font-size:13px;color:var(--text2);margin-bottom:14px">ใส่รหัสพนักงานและ PIN เพื่อยืนยัน</div>'
-    + '<div class="fg"><div class="fl">รหัสพนักงาน (ID)</div><input type="text" id="confirm-sid" placeholder="เช่น ST001" autocomplete="off" style="text-transform:uppercase"></div>'
-    + '<div class="fg"><div class="fl">PIN (4 หลัก)</div><input type="password" id="confirm-pin" placeholder="****" maxlength="4"></div>'
-    + '<div id="confirm-pin-alert"></div>'
-    + '<div class="modal-btns"><button class="btn" id="c-cancel">ยกเลิก</button><button class="btn btn-primary" id="c-ok">&#10003; ยืนยัน</button></div>';
-  m.appendChild(inner);
-  document.getElementById('modal-root').appendChild(m);
-  window._confirmPINCallback = callback;
-  m.querySelector('#c-cancel').addEventListener('click', closeModal);
-  m.querySelector('#c-ok').addEventListener('click', verifyConfirmPIN);
-  m.querySelector('#confirm-pin').addEventListener('keydown', e => { if(e.key==='Enter') verifyConfirmPIN(); });
-  setTimeout(() => { const inp = m.querySelector('#confirm-sid'); if(inp) inp.focus(); }, 100);
-}
-
-async function verifyConfirmPIN() {
-  const sid = (document.getElementById('confirm-sid').value.trim()).toUpperCase();
-  const pin = document.getElementById('confirm-pin').value.trim();
-  if(!sid || !pin) return;
-  const { data, error } = await sb.from('staff').select('*').eq('id', sid).eq('pin', pin).eq('active', true).single();
-  if(error || !data) {
-    document.getElementById('confirm-pin-alert').innerHTML = '<div class="alert alert-error">รหัสพนักงานหรือ PIN ไม่ถูกต้อง</div>';
-    return;
-  }
-  currentStaff = data;
-  closeModal();
-  if(window._confirmPINCallback) window._confirmPINCallback();
 }
 
 // ===== Void Transaction =====
 async function voidTransaction(txId, amount, studentName, txType) {
   if(!confirm('ยกเลิกรายการ '+fmt(amount)+' ของ '+studentName+'?')) return;
   var reason = prompt('ระบุเหตุผล (ไม่บังคับ):') || '';
-
-  // ดึงข้อมูล transaction
   var txRes = await sb.from('transactions').select('*').eq('id', txId).single();
   if(!txRes.data) { alert('ไม่พบรายการ'); return; }
   var tx = txRes.data;
   if(tx.voided) { alert('รายการนี้ถูกยกเลิกแล้ว'); return; }
-
-  // ดึงยอดเงินปัจจุบัน
   var stRes = await sb.from('students').select('balance').eq('id', tx.student_id).single();
   if(!stRes.data) { alert('ไม่พบนักเรียน'); return; }
   var curBal = Number(stRes.data.balance);
-  var newBal;
-
-  if(tx.type === 'topup') {
-    // ยกเลิกเติมเงิน = หักเงินคืน
-    newBal = Math.max(0, curBal - Number(tx.amount));
-  } else {
-    // ยกเลิกซื้อ = คืนเงิน
-    newBal = curBal + Number(tx.amount);
-  }
-
-  // อัปเดตยอดเงินนักเรียน
+  var newBal = tx.type === 'topup' ? Math.max(0, curBal - Number(tx.amount)) : curBal + Number(tx.amount);
   await sb.from('students').update({balance: newBal}).eq('id', tx.student_id);
-
-  // mark voided
   await sb.from('transactions').update({voided: true, void_reason: reason}).eq('id', txId);
-
-  // บันทึก reverse transaction
   var note = (tx.type==='topup' ? 'ยกเลิกเติมเงิน' : 'ยกเลิกซื้อสินค้า') + ' #'+txId + (reason?' - '+reason:'');
   await sb.from('transactions').insert({
-    student_id: tx.student_id,
-    shop_id: tx.shop_id,
+    student_id: tx.student_id, shop_id: tx.shop_id,
     type: tx.type==='topup' ? 'purchase' : 'topup',
-    amount: tx.amount,
-    balance_after: newBal,
-    note: note,
+    amount: tx.amount, balance_after: newBal, note: note,
     staff_id: currentStaff ? currentStaff.id : null
   });
-
-  alert('✓ ยกเลิกรายการแล้ว ยอดเงินนักเรียนอัปเดตเป็น '+fmt(newBal));
+  alert('\u2713 ยกเลิกรายการแล้ว ยอดเงินนักเรียนอัปเดตเป็น '+fmt(newBal));
   loadHistory();
 }
 
-
-// ===== Staff Management =====
-async function loadStaffMgmt() {
-  const { data } = await sb.from('staff').select('*,shops(name)').order('role').order('name');
-  const el = document.getElementById('staff-list');
-  if(!data || data.length === 0) { el.innerHTML = '<div class="empty">ยังไม่มีพนักงาน</div>'; return; }
-  el.innerHTML = '';
-  const roleLabel = { admin: '&#9783; แอดมิน', cashier: '&#43; แคชเชียร์', shop: '&#127978; ร้านค้า' };
-  const roleBg = { admin: '#1e2a3a', cashier: 'var(--blue)', shop: '#1D6F42' };
-  (data||[]).forEach(function(s) {
-    var row = document.createElement('div'); row.className = 'list-row';
-    var bg = roleBg[s.role] || '#666';
-    row.innerHTML = '<div class="avatar" style="background:'+bg+';color:#fff;font-size:11px">'+s.id+'</div>'
-      +'<div class="row-info">'
-      +'<div class="row-name">'+esc(s.name)+'</div>'
-      +'<div class="row-sub"><span style="background:'+bg+';color:#fff;padding:1px 7px;border-radius:99px;font-size:11px">'+(roleLabel[s.role]||s.role)+'</span>'
-      +(s.shops ? ' — '+esc(s.shops.name) : '')+'</div>'
-      +'</div>'
-      +'<div style="font-size:13px;color:var(--text3)">PIN: '+s.pin+'</div>'
-      +'<div class="row-actions">'
-      +'<button class="btn btn-sm">แก้ไข</button>'
-      +'<button class="btn btn-danger btn-sm">ลบ</button>'
-      +'</div>';
-    el.appendChild(row);
-    var sRef = s;
-    row.querySelectorAll('.btn-sm')[0].addEventListener('click', function() { showEditStaff(sRef); });
-    row.querySelectorAll('.btn-danger')[0].addEventListener('click', function() { delStaff(sRef.id, sRef.name); });
-  });
-}
-
-function showAddStaff() {
-  _showStaffModal(null);
-}
-function showEditStaff(s) {
-  _showStaffModal(s);
-}
-
-async function _showStaffModal(s) {
-  const { data: shops } = await sb.from('shops').select('*').eq('active', true).order('name');
-  const shopOpts = '<option value="">-- ไม่ระบุ --</option>' + (shops||[]).map(sh =>
-    `<option value="${sh.id}"${s && s.shop_id === sh.id ? ' selected' : ''}>${esc(sh.name)}</option>`
-  ).join('');
-  const m = document.createElement('div'); m.className = 'overlay';
-  m.innerHTML = `<div class="modal"><div class="modal-title">${s ? '✎ แก้ไขพนักงาน' : '+ เพิ่มพนักงาน'}</div>
-    <div class="fg"><div class="fl">รหัสพนักงาน (ID) *</div><input id="m-sid" type="text" value="${s?.id||''}" placeholder="เช่น ST005" ${s?'readonly':''}></div>
-    <div class="fg"><div class="fl">ชื่อ *</div><input id="m-sname" type="text" value="${s?.name||''}" placeholder="ชื่อพนักงาน"></div>
-    <div class="fg"><div class="fl">PIN (4 หลัก) *</div><input id="m-spin" type="text" value="${s?.pin||''}" maxlength="4" placeholder="0000"></div>
-    <div class="fg"><div class="fl">ระดับสิทธิ์</div>
-      <select id="m-srole" onchange="toggleShopField()">
-        <option value="admin"${s?.role==='admin'?' selected':''}>แอดมิน</option>
-        <option value="cashier"${s?.role==='cashier'?' selected':''}>แคชเชียร์</option>
-        <option value="shop"${s?.role==='shop'?' selected':''}>พนักงานร้านค้า</option>
-      </select>
-    </div>
-    <div class="fg" id="shop-field" style="display:${s?.role==='shop'?'block':'none'}">
-      <div class="fl">ร้านค้าที่รับผิดชอบ</div>
-      <select id="m-sshop">${shopOpts}</select>
-    </div>
-    <div class="modal-btns">
-      <button class="btn" onclick="closeModal()">ยกเลิก</button>
-      <button class="btn btn-primary" onclick="saveStaff(${s?`'${s.id}'`:'null'})">${s?'บันทึก':'เพิ่มพนักงาน'}</button>
-    </div>
-  </div>`;
-  document.getElementById('modal-root').appendChild(m);
-}
-
-function toggleShopField() {
-  const role = document.getElementById('m-srole')?.value;
-  const sf = document.getElementById('shop-field');
-  if(sf) sf.style.display = role === 'shop' ? 'block' : 'none';
-}
-
-async function saveStaff(existingId) {
-  const id = existingId || document.getElementById('m-sid').value.trim().toUpperCase();
-  const name = document.getElementById('m-sname').value.trim();
-  const pin = document.getElementById('m-spin').value.trim();
-  const role = document.getElementById('m-srole').value;
-  const shop_id = document.getElementById('m-sshop')?.value || null;
-  if(!id || !name || !pin) { alert('กรุณาใส่ข้อมูลให้ครบ'); return; }
-  if(!/^\d{4}$/.test(pin)) { alert('PIN ต้องเป็นตัวเลข 4 หลัก'); return; }
-  const payload = { name, pin, role, shop_id: role === 'shop' ? shop_id : null, active: true };
-  let error;
-  if(existingId) {
-    ({ error } = await sb.from('staff').update(payload).eq('id', existingId));
-  } else {
-    ({ error } = await sb.from('staff').insert({ id, ...payload }));
-  }
-  if(error) { alert('เกิดข้อผิดพลาด: ' + error.message); return; }
-  closeModal(); loadStaffMgmt();
-}
-
-async function delStaff(id, name) {
-  if(id === currentStaff?.id) { alert('ไม่สามารถลบตัวเองได้'); return; }
-  if(!confirm('ลบพนักงาน "' + name + '" ?')) return;
-  await sb.from('staff').update({ active: false }).eq('id', id);
-  loadStaffMgmt();
-}
-
-
-
-// ===== Login Once System =====
-function showLoginScreen() {
-  document.getElementById('shop-screen').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('li-id').value = '';
-  document.getElementById('li-pin').value = '';
-  document.getElementById('li-alert').innerHTML = '';
-  setTimeout(function() { document.getElementById('li-id').focus(); }, 100);
-}
-
-async function doLoginOnce() {
-  var id = document.getElementById('li-id').value.trim().toUpperCase();
-  var pin = document.getElementById('li-pin').value.trim();
-  var alertEl = document.getElementById('li-alert');
-  if(!id || !pin) { alertEl.innerHTML = '<div class="alert alert-error">กรุณาใส่รหัสพนักงานและ PIN</div>'; return; }
-  var btn = document.querySelector('#login-screen .btn-primary');
-  btn.textContent = 'กำลังตรวจสอบ...'; btn.disabled = true;
-  try {
-    var res = await sb.from('staff').select('*').eq('id', id).eq('pin', pin).eq('active', true).single();
-    if(!res.data) throw new Error('ไม่พบ');
-    currentStaff = res.data;
-    document.getElementById('li-pin').value = '';
-    document.getElementById('li-id').value = '';
-    document.getElementById('li-alert').innerHTML = '';
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('logged-in-name').textContent = res.data.name;
-    applyRolePermissions(res.data.role);
-    if(res.data.role === 'shop' && res.data.shop_id) {
-      var shopRes = await sb.from('shops').select('*').eq('id', res.data.shop_id).single();
-      if(shopRes.data) { await selectShop(shopRes.data); return; }
-    }
-    // admin/cashier ไปหน้า dashboard
-    document.getElementById('shop-screen').style.display = 'none';
-    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
-    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
-    document.querySelector('[data-page="dashboard"]').classList.add('active');
-    document.getElementById('page-dashboard').classList.add('active');
-    document.getElementById('topbar-title').textContent = 'แดชบอร์ด';
-    curPage = 'dashboard'; loadPage('dashboard');
-  } catch(e) {
-    alertEl.innerHTML = '<div class="alert alert-error">รหัสพนักงานหรือ PIN ไม่ถูกต้อง</div>';
-    document.getElementById('li-pin').value = ''; document.getElementById('li-pin').focus();
-  }
-  btn.textContent = '✓ เข้าสู่ระบบ'; btn.disabled = false;
-}
-
-function doLogout() {
-  if(!confirm('ออกจากระบบ?')) return;
-  currentStaff = null;
-  localStorage.removeItem('sp_staff');
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('logged-in-name').textContent = '';
-  // reset nav
-  document.querySelectorAll('.nav-item').forEach(function(el) { el.style.display = 'flex'; });
-  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
-  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
-}
-
-function applyRolePermissions(role) {
-  document.querySelectorAll('.nav-item').forEach(function(el) {
-    var page = el.dataset.page;
-    if(role === 'admin') {
-      el.style.display = 'flex'; // เห็นทุกเมนู
-    } else if(role === 'cashier') {
-      // เห็น: scan, topup, history
-      var show = ['scan','topup','history'];
-      el.style.display = show.indexOf(page) >= 0 ? 'flex' : 'none';
-    } else {
-      // shop: เห็นแค่ scan กับ history
-      var show = ['scan','history'];
-      el.style.display = show.indexOf(page) >= 0 ? 'flex' : 'none';
-    }
-  });
-}
-
-// ===== แก้ confirmWithPIN — ไม่ต้องใส่ PIN อีกแล้วเมื่อ login แล้ว =====
-function confirmWithPIN(label, callback) {
-  if(currentStaff) {
-    callback(); // login แล้ว ทำได้เลย ไม่ต้องใส่ PIN ซ้ำ
-    return;
-  }
-  alert('กรุณาเข้าสู่ระบบก่อนครับ');
-  doLogout();
-}
-async function verifyConfirmPIN() {}
-
-
-
-// ===== NFC Registration =====
-function showNFCRegister() {
-  var m = document.createElement('div'); m.className = 'overlay';
-  m.innerHTML = '<div class="modal" style="width:420px">'
-    + '<div class="modal-title">&#128245; ลงทะเบียนบัตร NFC</div>'
-    + '<div style="background:#E6F1FB;border-radius:var(--r);padding:12px;margin-bottom:14px;font-size:13px;line-height:1.7">'
-    + '<strong>วิธีใช้:</strong><br>'
-    + '1. ค้นหาชื่อนักเรียน<br>'
-    + '2. กดเลือกนักเรียน<br>'
-    + '3. วางบัตร NFC บนเครื่องอ่าน แล้วกด Enter<br>'
-    + '4. กด "บันทึก" เพื่อผูกบัตรกับนักเรียน'
-    + '</div>'
-    + '<div class="fg"><div class="fl">ค้นหานักเรียน</div>'
-    + '<input type="text" id="nfc-search" placeholder="พิมพ์ชื่อหรือรหัส..." oninput="nfcSearchLive(this.value)">'
-    + '<div id="nfc-search-results" style="display:none;border:1px solid var(--border);border-radius:var(--r);margin-top:4px;background:#fff;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>'
-    + '</div>'
-    + '<div id="nfc-selected-info" style="display:none;background:var(--gray);padding:10px 12px;border-radius:var(--r);margin-bottom:12px">'
-    + '<div style="font-weight:500" id="nfc-st-name"></div>'
-    + '<div style="font-size:12px;color:var(--text2)" id="nfc-st-cur"></div>'
-    + '</div>'
-    + '<div class="fg"><div class="fl">UID บัตร NFC (วางบัตรแล้วกด Enter หรือพิมพ์เอง)</div>'
-    + '<div style="display:flex;gap:8px">'
-    + '<input type="text" id="nfc-uid-input" placeholder="แตะบัตรที่เครื่องอ่าน..." autocomplete="off" style="flex:1;font-size:15px" onkeydown="if(event.key===\'Enter\'&&this.value.trim())document.getElementById(\'nfc-save-btn\').click()">'
-    + '<button class="btn btn-sm" onclick="document.getElementById(\'nfc-uid-input\').focus()">&#128245; พร้อม</button>'
-    + '</div>'
-    + '</div>'
-    + '<div id="nfc-alert" style="margin-bottom:8px"></div>'
-    + '<div class="modal-btns">'
-    + '<button class="btn" onclick="closeModal()">ปิด</button>'
-    + '<button class="btn btn-primary" id="nfc-save-btn" onclick="saveNFCCard()">&#10003; บันทึกบัตร NFC</button>'
-    + '</div></div>';
-  document.getElementById('modal-root').appendChild(m);
-  setTimeout(function() { document.getElementById('nfc-search').focus(); }, 100);
-}
-
-var nfcSelectedStudent = null;
-
-function nfcSearchLive(q) {
-  if(!q || q.length < 1) { document.getElementById('nfc-search-results').style.display='none'; return; }
-  q = q.toLowerCase();
-  var list = studentsCache.filter(function(s) {
-    return s.name.toLowerCase().indexOf(q) >= 0 || s.id.toLowerCase().indexOf(q) >= 0;
-  }).slice(0, 8);
-  var el = document.getElementById('nfc-search-results');
-  if(list.length === 0) { el.style.display='none'; return; }
-  el.innerHTML = list.map(function(s) {
-    return '<div style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:10px" data-id="'+s.id+'">'
-      +'<div class="avatar" style="width:30px;height:30px;font-size:11px;flex-shrink:0">'+ini(s.name)+'</div>'
-      +'<div><div style="font-size:13px;font-weight:500">'+esc(s.name)+'</div>'
-      +'<div style="font-size:11px;color:var(--text2)">'+s.grade+' \u2022 '+s.id
-      +(s.nfc_uid ? ' \u2022 <span style="color:var(--green)">&#128245; มีบัตรแล้ว</span>' : ' \u2022 <span style="color:var(--text3)">ยังไม่มีบัตร</span>')
-      +'</div></div>'
-      +'</div>';
-  }).join('');
-  el.style.display = 'block';
-  el.querySelectorAll('[data-id]').forEach(function(row) {
-    row.addEventListener('click', function() { nfcSelectStudent(row.dataset.id); });
-  });
-}
-
-function nfcSelectStudent(sid) {
-  var s = studentsCache.find(function(st) { return st.id === sid; });
-  if(!s) return;
-  nfcSelectedStudent = s;
-  document.getElementById('nfc-search-results').style.display = 'none';
-  document.getElementById('nfc-search').value = s.name;
-  document.getElementById('nfc-st-name').textContent = s.name + ' — ' + s.grade;
-  document.getElementById('nfc-st-cur').textContent = s.nfc_uid ? 'บัตรปัจจุบัน: ' + s.nfc_uid : 'ยังไม่มีบัตร NFC';
-  document.getElementById('nfc-selected-info').style.display = 'block';
-  document.getElementById('nfc-uid-input').value = '';
-  document.getElementById('nfc-uid-input').focus();
-}
-
-async function saveNFCCard() {
-  if(!nfcSelectedStudent) {
-    document.getElementById('nfc-alert').innerHTML = '<div class="alert alert-error">กรุณาเลือกนักเรียนก่อน</div>';
-    return;
-  }
-  var uid = document.getElementById('nfc-uid-input').value.trim();
-  if(!uid) {
-    document.getElementById('nfc-alert').innerHTML = '<div class="alert alert-error">กรุณาวางบัตร NFC บนเครื่องอ่านก่อน</div>';
-    return;
-  }
-  // ตรวจสอบว่า UID ซ้ำกับคนอื่นไหม
-  var checkRes = await sb.from('students').select('id,name').eq('nfc_uid', uid).eq('active', true).single();
-  if(checkRes.data && checkRes.data.id !== nfcSelectedStudent.id) {
-    document.getElementById('nfc-alert').innerHTML = '<div class="alert alert-error">บัตรนี้ผูกกับ '+esc(checkRes.data.name)+' อยู่แล้ว</div>';
-    return;
-  }
-  var res = await sb.from('students').update({nfc_uid: uid}).eq('id', nfcSelectedStudent.id);
-  if(res.error) {
-    document.getElementById('nfc-alert').innerHTML = '<div class="alert alert-error">เกิดข้อผิดพลาด: '+res.error.message+'</div>';
-    return;
-  }
-  // อัปเดต cache
-  var cached = studentsCache.find(function(s) { return s.id === nfcSelectedStudent.id; });
-  if(cached) cached.nfc_uid = uid;
-  document.getElementById('nfc-alert').innerHTML = '<div class="alert alert-success">\u2713 บันทึกบัตร NFC ให้ '+esc(nfcSelectedStudent.name)+' แล้ว</div>';
-  document.getElementById('nfc-st-cur').textContent = 'บัตรปัจจุบัน: ' + uid;
-  document.getElementById('nfc-uid-input').value = '';
-  nfcSelectedStudent = null;
-  document.getElementById('nfc-search').value = '';
-  document.getElementById('nfc-selected-info').style.display = 'none';
-  document.getElementById('nfc-search').focus();
-}
-
-// ===== Shop Mode =====
-let currentShop = null; // null = admin
-
-async function showShopSelect() {
-  const { data: shops } = await sb.from('shops').select('*').eq('active', true).order('name');
-  const list = document.getElementById('shop-select-list');
-  list.innerHTML = '';
-  (shops||[]).forEach(s => {
-    const card = document.createElement('div');
-    card.className = 'shop-card';
-    card.innerHTML = `<div class="shop-card-icon">&#127978;</div><div><div class="shop-card-name">${esc(s.name)}</div><div class="shop-card-cat">${esc(s.category)}</div></div>`;
-    card.addEventListener('click', () => selectShop(s));
-    list.appendChild(card);
-  });
-  document.getElementById('shop-screen').style.display = 'flex';
-}
-
-async function selectShop(shop) {
-  currentShop = shop;
-  document.getElementById('shop-screen').style.display = 'none';
-  if (shop) {
-    document.getElementById('current-shop-badge').style.display = 'block';
-    document.getElementById('current-shop-name').textContent = shop.name;
-    document.getElementById('current-shop-icon').textContent = '🏪';
-    // ซ่อนเมนูที่ร้านค้าไม่ต้องการ
-    document.querySelectorAll('.nav-item').forEach(el => {
-      const p = el.dataset.page;
-      if (p === 'scan') el.style.display = 'flex';
-      else if (p === 'history') el.style.display = 'flex';
-      else el.style.display = 'none';
-    });
-    // ไปหน้าสแกนทันที
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelector('[data-page="scan"]').classList.add('active');
-    document.getElementById('page-scan').classList.add('active');
-    document.getElementById('topbar-title').textContent = 'สแกนบัตร — ' + shop.name;
-    curPage = 'scan';
-    await initScan();
-  } else {
-    // Admin mode - เห็นทุกเมนู
-    document.getElementById('current-shop-badge').style.display = 'none';
-    document.querySelectorAll('.nav-item').forEach(el => el.style.display = 'flex');
-    loadPage('dashboard');
-  }
-}
-
-// override initScan เพื่อ auto-select shop ถ้าอยู่ในโหมดร้านค้า
-// initScan override removed - logic merged into initScan
-
-// override loadHistory เพื่อ filter ตามร้าน
-const _origLoadHistory = loadHistory;
-loadHistory = async function() {
-  if (!currentShop) { await _origLoadHistory(); return; }
-  document.getElementById('hi-list').innerHTML = '<div class="loading">&#9203; กำลังโหลด...</div>';
-  let q = sb.from('transactions').select('*,students(name),shops(name)')
-    .eq('shop_id', currentShop.id)
-    .order('created_at', {ascending: false}).limit(100);
-  const type = document.getElementById('hi-type').value;
-  const date = document.getElementById('hi-date').value;
-  if (type) q = q.eq('type', type);
-  if (date) q = q.gte('created_at', date+'T00:00:00').lt('created_at', date+'T23:59:59');
-  const { data } = await q;
-  const el = document.getElementById('hi-list');
-  if (!data||data.length===0) { el.innerHTML='<div class="empty">ไม่มีรายการ</div>'; return; }
-  el.innerHTML = data.map(tx => {
-    const tp = tx.type==='topup';
-    const dt = new Date(tx.created_at).toLocaleString('th-TH',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'2-digit'});
-    return `<div class="list-row"><div class="tx-dot ${tp?'in':'out'}"></div><div class="row-info"><div class="row-name">${esc(tx.students?.name||'?')} \u2014 ${esc(tx.shops?.name||'เติมเงิน')}</div><div class="row-sub">${dt}</div></div><div style="text-align:right"><div class="tx-amount ${tp?'in':'out'}">${tp?'+':'\u2212'}${fmt(tx.amount)}</div><div style="font-size:11px;color:var(--text3)">ยอด: ${fmt(tx.balance_after)}</div></div></div>`;
-  }).join('');
-};
-
-
-
-// ===== Balance Report =====
-var allStudentsBalance = [];
-
-function switchRptTab(btn, tabId) {
-  document.querySelectorAll('.rpt-tab').forEach(function(b) {
-    b.style.color = 'var(--text2)';
-    b.style.borderBottom = '2px solid transparent';
-  });
-  btn.style.color = 'var(--blue)';
-  btn.style.borderBottom = '2px solid var(--blue)';
-  document.getElementById('rpt-tx').style.display = tabId === 'rpt-tx' ? 'block' : 'none';
-  document.getElementById('rpt-balance').style.display = tabId === 'rpt-balance' ? 'block' : 'none';
-  if(tabId === 'rpt-balance') loadBalanceReport();
-}
-
-async function loadBalanceReport() {
-  document.getElementById('bal-list').innerHTML = '<div class="loading">&#9203; กำลังโหลด...</div>';
-  var res = await sb.from('students').select('id,name,grade,balance,barcode').eq('active', true).order('grade').order('name');
-  allStudentsBalance = res.data || [];
-
-  // สร้าง grade options
-  var grades = [...new Set(allStudentsBalance.map(function(s) { return s.grade; }))].sort();
-  var sel = document.getElementById('bal-grade');
-  var cur = sel.value;
-  sel.innerHTML = '<option value="">ทุกห้อง</option>';
-  grades.forEach(function(g) {
-    var o = document.createElement('option');
-    o.value = g; o.textContent = g;
-    if(g === cur) o.selected = true;
-    sel.appendChild(o);
-  });
-
-  filterBalanceList();
-}
-
-function filterBalanceList() {
-  var q = (document.getElementById('bal-search').value || '').toLowerCase();
-  var grade = document.getElementById('bal-grade').value;
-  var sort = document.getElementById('bal-sort').value;
-
-  var list = allStudentsBalance.filter(function(s) {
-    var matchQ = !q || s.name.toLowerCase().indexOf(q) >= 0 || s.id.toLowerCase().indexOf(q) >= 0;
-    var matchG = !grade || s.grade === grade;
-    return matchQ && matchG;
-  });
-
-  // sort
-  list.sort(function(a, b) {
-    if(sort === 'balance-asc') return a.balance - b.balance;
-    if(sort === 'balance-desc') return b.balance - a.balance;
-    return a.name.localeCompare(b.name, 'th');
-  });
-
-  // summary
-  var total = list.reduce(function(s, st) { return s + Number(st.balance); }, 0);
-  var low = list.filter(function(s) { return s.balance < 50; }).length;
-  document.getElementById('bal-summary').innerHTML =
-    '<div class="metric"><div class="metric-label">นักเรียน</div><div class="metric-value blue">' + list.length + ' คน</div></div>' +
-    '<div class="metric"><div class="metric-label">ยอดเงินรวม</div><div class="metric-value green">' + fmt(total) + '</div></div>' +
-    '<div class="metric"><div class="metric-label">เฉลี่ย/คน</div><div class="metric-value">' + fmt(list.length ? Math.round(total/list.length) : 0) + '</div></div>' +
-    '<div class="metric"><div class="metric-label">ยอดต่ำ &lt;50฿</div><div class="metric-value red">' + low + ' คน</div></div>';
-
-  // แยกกลุ่มตามห้อง
-  var el = document.getElementById('bal-list');
-  if(list.length === 0) { el.innerHTML = '<div class="empty">ไม่พบนักเรียน</div>'; return; }
-
-  var byGrade = {};
-  list.forEach(function(s) {
-    if(!byGrade[s.grade]) byGrade[s.grade] = [];
-    byGrade[s.grade].push(s);
-  });
-
-  var html = '';
-  Object.keys(byGrade).sort().forEach(function(g) {
-    var students = byGrade[g];
-    var gradeTotal = students.reduce(function(s, st) { return s + Number(st.balance); }, 0);
-    html += '<div class="card" style="margin-bottom:14px">';
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
-    html += '<div class="card-title" style="margin:0">&#128101; ' + esc(g) + ' <span style="font-weight:400;color:var(--text2);font-size:12px">(' + students.length + ' คน)</span></div>';
-    html += '<div style="font-size:13px;font-weight:500;color:var(--green)">รวม ' + fmt(gradeTotal) + '</div>';
-    html += '</div>';
-    html += '<table style="width:100%;border-collapse:collapse;font-size:13px">';
-    html += '<thead><tr style="background:#f5f5f5"><th style="padding:6px 8px;text-align:left;border-bottom:1px solid #ddd;font-weight:500">ชื่อ</th><th style="padding:6px 8px;text-align:left;border-bottom:1px solid #ddd;font-weight:500">รหัส</th><th style="padding:6px 8px;text-align:right;border-bottom:1px solid #ddd;font-weight:500">ยอดเงิน</th></tr></thead>';
-    html += '<tbody>';
-    students.forEach(function(s, i) {
-      var low = Number(s.balance) < 50;
-      html += '<tr style="background:' + (i%2===0?'#fff':'#fafafa') + '">';
-      html += '<td style="padding:7px 8px;border-bottom:1px solid #f0f0f0">' + esc(s.name) + '</td>';
-      html += '<td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;color:#999">' + s.id + '</td>';
-      html += '<td style="padding:7px 8px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:500;color:' + (low?'var(--red)':'var(--green)') + '">' + fmt(s.balance) + (low?' &#9888;':'') + '</td>';
-      html += '</tr>';
-    });
-    html += '</tbody></table></div>';
-  });
-  el.innerHTML = html;
-}
-
-function exportBalancePDF() {
-  var q = (document.getElementById('bal-search').value || '').toLowerCase();
-  var grade = document.getElementById('bal-grade').value;
-  var sort = document.getElementById('bal-sort').value;
-
-  var list = allStudentsBalance.filter(function(s) {
-    var matchQ = !q || s.name.toLowerCase().indexOf(q) >= 0 || s.id.toLowerCase().indexOf(q) >= 0;
-    var matchG = !grade || s.grade === grade;
-    return matchQ && matchG;
-  });
-  list.sort(function(a, b) {
-    if(sort === 'balance-asc') return a.balance - b.balance;
-    if(sort === 'balance-desc') return b.balance - a.balance;
-    return a.name.localeCompare(b.name, 'th');
-  });
-
-  var total = list.reduce(function(s, st) { return s + Number(st.balance); }, 0);
-  var byGrade = {};
-  list.forEach(function(s) {
-    if(!byGrade[s.grade]) byGrade[s.grade] = [];
-    byGrade[s.grade].push(s);
-  });
-
-  var tableHTML = '';
-  Object.keys(byGrade).sort().forEach(function(g) {
-    var students = byGrade[g];
-    var gradeTotal = students.reduce(function(s, st) { return s + Number(st.balance); }, 0);
-    tableHTML += '<h3 style="margin:16px 0 6px;font-size:14px">&#128101; ' + g + ' (' + students.length + ' คน) — รวม ' + fmt(gradeTotal) + '</h3>';
-    tableHTML += '<table><thead><tr><th style="width:40px">ลำดับ</th><th>ชื่อ-นามสกุล</th><th>รหัส</th><th style="text-align:right">ยอดเงิน</th></tr></thead><tbody>';
-    students.forEach(function(s, i) {
-      var low = Number(s.balance) < 50;
-      tableHTML += '<tr' + (i%2?' style="background:#fafafa"':'') + '><td style="text-align:center">' + (i+1) + '</td><td>' + s.name + '</td><td style="color:#999">' + s.id + '</td><td style="text-align:right;font-weight:500;color:' + (low?'#A32D2D':'#3B6D11') + '">' + fmt(s.balance) + (low?' ⚠':'') + '</td></tr>';
-    });
-    tableHTML += '</tbody></table>';
-  });
-
-  var win = window.open('', '_blank');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>รายงานยอดเงินนักเรียน</title><style>'
-    + 'body{font-family:\'Segoe UI\',Tahoma,Arial,sans-serif;font-size:13px;margin:0;padding:20px;color:#1a1a1a}'
-    + 'h1{font-size:18px;font-weight:600;margin-bottom:4px}'
-    + 'h3{font-size:14px;font-weight:600;margin:16px 0 6px;color:#185FA5}'
-    + '.sub{font-size:12px;color:#666;margin-bottom:14px}'
-    + '.summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}'
-    + '.metric{background:#f5f5f5;border-radius:8px;padding:8px 14px;min-width:110px}'
-    + '.metric-label{font-size:11px;color:#999;margin-bottom:3px}'
-    + '.metric-value{font-size:18px;font-weight:600}'
-    + 'table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}'
-    + 'th{background:#f0f0f0;padding:6px 8px;text-align:left;border-bottom:1px solid #ddd;font-weight:500}'
-    + 'td{padding:6px 8px;border-bottom:1px solid #f0f0f0}'
-    + '@media print{body{padding:10px}}'
-    + '</style></head><body>'
-    + '<h1>&#127979; รายงานยอดเงินนักเรียน SchoolPay</h1>'
-    + '<div class="sub">'
-    + (grade ? 'ห้อง: ' + grade : 'ทุกห้องเรียน')
-    + ' &nbsp;|&nbsp; พิมพ์เมื่อ: ' + new Date().toLocaleString('th-TH') + '</div>'
-    + '<div class="summary">'
-    + '<div class="metric"><div class="metric-label">นักเรียนทั้งหมด</div><div class="metric-value" style="color:#185FA5">' + list.length + ' คน</div></div>'
-    + '<div class="metric"><div class="metric-label">ยอดเงินรวม</div><div class="metric-value" style="color:#3B6D11">' + fmt(total) + '</div></div>'
-    + '<div class="metric"><div class="metric-label">ยอดต่ำ &lt;50฿</div><div class="metric-value" style="color:#A32D2D">' + list.filter(function(s){return s.balance<50;}).length + ' คน</div></div>'
-    + '</div>'
-    + tableHTML
-    + '</body></html>');
-  win.document.close();
-  setTimeout(function() { win.print(); }, 500);
-}
-
-// ===== Report & PDF =====
-async function initReport() {
-  // โหลดข้อมูลนักเรียนสำหรับ balance tab ด้วย
-  if(allStudentsBalance.length === 0) {
-    var res = await sb.from('students').select('id,name,grade,balance').eq('active',true).order('grade').order('name');
-    allStudentsBalance = res.data || [];
-  }
-  // โหลดร้านค้า
-  const { data: shops } = await sb.from('shops').select('*').order('name');
-  const sel = document.getElementById('rpt-shop');
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">ทุกร้านค้า</option>';
-  (shops||[]).forEach(s => { const o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o); });
-  if(cur) sel.value = cur;
-  // default วันนี้
-  if(!document.getElementById('rpt-from').value) setRptToday();
-  else loadReport();
-}
-
-function setRptToday() {
-  const t = td();
-  document.getElementById('rpt-from').value = t;
-  document.getElementById('rpt-to').value = t;
-  loadReport();
-}
-function setRptWeek() {
-  const to = new Date(); const from = new Date(); from.setDate(from.getDate()-6);
-  document.getElementById('rpt-from').value = from.toISOString().slice(0,10);
-  document.getElementById('rpt-to').value = to.toISOString().slice(0,10);
-  loadReport();
-}
-function setRptMonth() {
-  const now = new Date();
-  document.getElementById('rpt-from').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
-  document.getElementById('rpt-to').value = now.toISOString().slice(0,10);
-  loadReport();
-}
-
-async function loadReport() {
-  const shopId = document.getElementById('rpt-shop').value;
-  const from = document.getElementById('rpt-from').value;
-  const to = document.getElementById('rpt-to').value;
-  if(!from || !to) return;
-
-  document.getElementById('rpt-list').innerHTML = '<div class="loading">&#9203; กำลังโหลด...</div>';
-
-  let q = sb.from('transactions')
-    .select('*,students(name,id),shops(name)')
-    .gte('created_at', from + 'T00:00:00')
-    .lte('created_at', to + 'T23:59:59')
-    .order('created_at', {ascending: false});
-
-  if(shopId) q = q.eq('shop_id', shopId);
-
-  const { data: txs } = await q;
-  const rows = txs || [];
-
-  // Summary
-  const purchases = rows.filter(t => t.type === 'purchase');
-  const topups = rows.filter(t => t.type === 'topup');
-  const totalSales = purchases.reduce((s,t) => s+Number(t.amount), 0);
-  const totalTopup = topups.reduce((s,t) => s+Number(t.amount), 0);
-
-  // shop breakdown
-  const shopMap = {};
-  purchases.forEach(t => {
-    const sn = t.shops?.name || 'ไม่ระบุ';
-    if(!shopMap[sn]) shopMap[sn] = 0;
-    shopMap[sn] += Number(t.amount);
-  });
-
-  const summaryEl = document.getElementById('rpt-summary');
-  summaryEl.innerHTML = `
-    <div class="metric"><div class="metric-label">ยอดขายรวม</div><div class="metric-value green">${fmt(totalSales)}</div></div>
-    <div class="metric"><div class="metric-label">รายการขาย</div><div class="metric-value blue">${purchases.length} รายการ</div></div>
-    <div class="metric"><div class="metric-label">เติมเงินรวม</div><div class="metric-value" style="color:#185FA5">${fmt(totalTopup)}</div></div>
-    <div class="metric"><div class="metric-label">เติมเงิน</div><div class="metric-value">${topups.length} ครั้ง</div></div>
-    ${Object.entries(shopMap).map(([name,amt]) => `<div class="metric"><div class="metric-label">${esc(name)}</div><div class="metric-value" style="font-size:18px;color:var(--green)">${fmt(amt)}</div></div>`).join('')}
-  `;
-
-  // ชื่อ report
-  const shopName = document.getElementById('rpt-shop').options[document.getElementById('rpt-shop').selectedIndex].text;
-  document.getElementById('rpt-title').textContent = `รายงาน${shopName !== 'ทุกร้านค้า' ? ' — '+shopName : ''} (${from === to ? from : from+' ถึง '+to})`;
-
-  // ตาราง
-  if(rows.length === 0) {
-    document.getElementById('rpt-list').innerHTML = '<div class="empty">ไม่มีรายการในช่วงวันที่นี้</div>';
-    return;
-  }
-
-  document.getElementById('rpt-list').innerHTML = `
-    <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:13px" id="rpt-table">
-        <thead>
-          <tr style="background:#f5f5f5;text-align:left">
-            <th style="padding:8px 10px;border-bottom:1px solid #ddd">วันเวลา</th>
-            <th style="padding:8px 10px;border-bottom:1px solid #ddd">ชื่อนักเรียน</th>
-            <th style="padding:8px 10px;border-bottom:1px solid #ddd">รหัส</th>
-            <th style="padding:8px 10px;border-bottom:1px solid #ddd">ประเภท</th>
-            <th style="padding:8px 10px;border-bottom:1px solid #ddd">ร้านค้า</th>
-            <th style="padding:8px 10px;border-bottom:1px solid #ddd">รายการ</th>
-            <th style="padding:8px 10px;border-bottom:1px solid #ddd;text-align:right">จำนวนเงิน</th>
-            <th style="padding:8px 10px;border-bottom:1px solid #ddd;text-align:right">ยอดหลัง</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map((tx,i) => {
-            const tp = tx.type === 'topup';
-            const dt = new Date(tx.created_at).toLocaleString('th-TH', {
-              year:'2-digit', month:'2-digit', day:'2-digit',
-              hour:'2-digit', minute:'2-digit'
-            });
-            return `<tr style="background:${i%2===0?'#fff':'#fafafa'}">
-              <td style="padding:7px 10px;border-bottom:1px solid #f0f0f0;white-space:nowrap">${dt}</td>
-              <td style="padding:7px 10px;border-bottom:1px solid #f0f0f0">${esc(tx.students?.name||'?')}</td>
-              <td style="padding:7px 10px;border-bottom:1px solid #f0f0f0;color:#999">${tx.student_id}</td>
-              <td style="padding:7px 10px;border-bottom:1px solid #f0f0f0">
-                <span style="background:${tp?'#EAF3DE':'#FCEBEB'};color:${tp?'#3B6D11':'#A32D2D'};padding:2px 8px;border-radius:99px;font-size:11px">
-                  ${tp?'เติมเงิน':'ซื้อสินค้า'}
-                </span>
-              </td>
-              <td style="padding:7px 10px;border-bottom:1px solid #f0f0f0">${esc(tx.shops?.name||'-')}</td>
-              <td style="padding:7px 10px;border-bottom:1px solid #f0f0f0;font-size:12px;color:#666">${esc(tx.note||'-')}</td>
-              <td style="padding:7px 10px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:500;color:${tp?'#3B6D11':'#A32D2D'}">${tp?'+':'-'}${fmt(tx.amount)}</td>
-              <td style="padding:7px 10px;border-bottom:1px solid #f0f0f0;text-align:right;color:#666">${fmt(tx.balance_after)}</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-        <tfoot>
-          <tr style="background:#f5f5f5;font-weight:500">
-            <td colspan="6" style="padding:8px 10px">รวมทั้งหมด</td>
-            <td style="padding:8px 10px;text-align:right;color:#3B6D11">${fmt(totalSales)}</td>
-            <td style="padding:8px 10px"></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>`;
-}
-
-function exportPDF() {
-  const from = document.getElementById('rpt-from').value;
-  const to = document.getElementById('rpt-to').value;
-  const shopName = document.getElementById('rpt-shop').options[document.getElementById('rpt-shop').selectedIndex].text;
-  const rptCard = document.getElementById('rpt-card');
-  const summary = document.getElementById('rpt-summary');
-
-  if(!from || !to) { alert('กรุณาเลือกช่วงวันที่ก่อน'); return; }
-
-  const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html><head>
-    <meta charset="UTF-8">
-    <title>รายงาน SchoolPay</title>
-    <style>
-      body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; font-size: 13px; color: #1a1a1a; margin: 0; padding: 20px; }
-      h1 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
-      .sub { font-size: 12px; color: #666; margin-bottom: 16px; }
-      .summary { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-      .metric { background: #f5f5f5; border-radius: 8px; padding: 10px 14px; min-width: 120px; }
-      .metric-label { font-size: 11px; color: #999; margin-bottom: 3px; }
-      .metric-value { font-size: 20px; font-weight: 600; }
-      table { width: 100%; border-collapse: collapse; font-size: 12px; }
-      th { background: #f5f5f5; padding: 7px 8px; text-align: left; border-bottom: 1px solid #ddd; }
-      td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
-      tr:nth-child(even) { background: #fafafa; }
-      tfoot tr { background: #f5f5f5; font-weight: 600; }
-      .badge-buy { background: #FCEBEB; color: #A32D2D; padding: 1px 6px; border-radius: 99px; font-size: 11px; }
-      .badge-top { background: #EAF3DE; color: #3B6D11; padding: 1px 6px; border-radius: 99px; font-size: 11px; }
-      @media print { body { padding: 10px; } }
-    </style>
-  </head><body>
-    <h1>&#127979; รายงาน SchoolPay — ${esc(shopName)}</h1>
-    <div class="sub">ช่วงวันที่: ${from === to ? from : from + ' ถึง ' + to} &nbsp;|&nbsp; พิมพ์เมื่อ: ${new Date().toLocaleString('th-TH')}</div>
-    <div class="summary">${summary.innerHTML}</div>
-    ${rptCard.innerHTML}
-  </body></html>`);
-  win.document.close();
-  setTimeout(() => { win.print(); }, 500);
-}
-
-
 // ===== Init =====
-async function _appInit() {
-  const url=localStorage.getItem('sp_url');
-  const key=localStorage.getItem('sp_key');
-  if(!url||!key) {
-    document.getElementById('setup-screen').style.display='flex';
-    return;
-  }
-  try {
-    initSupabase(url, key);
-    await sb.from('students').select('id').limit(1);
-    setOnline(true);
-    await showShopSelect();
-  } catch(e) {
-    setOnline(false);
-    document.getElementById('setup-screen').style.display='flex';
-  }
-}
-// รอ Supabase โหลดก่อน
-// Auto init with hardcoded credentials
 async function _appInit() {
   try {
     var SB = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
-    if(!SB || !SB.createClient) {
-      setTimeout(_appInit, 1000);
-      return;
-    }
-    var url = window.SP_URL || localStorage.getItem('sp_url') || 'https://siaxxsbszyzboaorntuv.supabase.co';
-    var key = window.SP_KEY || localStorage.getItem('sp_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpYXh4c2Jzenl6Ym9hb3JudHV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODY2NDUsImV4cCI6MjA5MzQ2MjY0NX0.q7HeLis9HNLnrTKLzR9Uo0H--7ycLLoHsSHi5agkBC8';
-    url = url.replace(/\/rest\/v1.*$/, '').replace(/\/$/, '');
+    if(!SB || !SB.createClient) { setTimeout(_appInit, 1000); return; }
+    var url = window.SP_URL || 'https://siaxxsbszyzboaorntuv.supabase.co';
+    var key = window.SP_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpYXh4c2Jzenl6Ym9hb3JudHV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODY2NDUsImV4cCI6MjA5MzQ2MjY0NX0.q7HeLis9HNLnrTKLzR9Uo0H--7ycLLoHsSHi5agkBC8';
     sb = SB.createClient(url, key);
     await sb.from('students').select('id').limit(1);
     setOnline(true);
     document.getElementById('setup-screen').style.display = 'none';
-
-    // ไปหน้าเลือกร้านก่อนเสมอ — login จะถามทีหลังตอนทำรายการ
     await showShopSelect();
-
   } catch(e) {
     setOnline(false);
     document.getElementById('setup-screen').style.display = 'flex';
-    document.getElementById('setup-url').value = window.SP_URL || '';
-    document.getElementById('setup-key').value = window.SP_KEY || '';
   }
 }
 window.addEventListener('load', function() { setTimeout(_appInit, 300); });
-</script>
 
+</script>
 
 </body></html>
