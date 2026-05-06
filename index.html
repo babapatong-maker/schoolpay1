@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_18.html -->
+<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_19.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -474,6 +474,7 @@ input:focus,select:focus{border-color:var(--blue);}
     <div class="page" id="page-students">
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
         <input type="text" id="st-q" placeholder="🔍 ค้นหาชื่อ / รหัส / บาร์โค้ด" style="flex:1;min-width:180px" oninput="searchStudents()">
+        <button class="btn btn-sm" style="background:#7c3aed;color:#fff;border-color:#7c3aed;white-space:nowrap" onclick="showNFCRegister()">📵 ลงทะเบียน NFC</button>
         <button class="btn btn-sm" onclick="downloadTemplate()" style="white-space:nowrap">📥 Template Excel</button>
         <button class="btn btn-sm" style="background:#1D6F42;color:#fff;border-color:#1D6F42;white-space:nowrap" onclick="importExcel()">📊 นำเข้า Excel</button>
         <button class="btn btn-primary" onclick="showAddSt()">+ เพิ่มนักเรียน</button>
@@ -762,8 +763,14 @@ function doManualScan() {
 }
 
 async function processScan(barcode) {
-  const { data } = await sb.from('students').select('*').eq('barcode', barcode.trim()).eq('active',true).single();
-  if(!data) { showAlert('scan-alert','ไม่พบบาร์โค้ด: '+barcode,'error'); return; }
+  var uid = barcode.trim();
+  // ค้นหาด้วย barcode ก่อน ถ้าไม่เจอค้นด้วย nfc_uid
+  var res = await sb.from('students').select('*').eq('barcode', uid).eq('active',true).single();
+  if(!res.data) {
+    res = await sb.from('students').select('*').eq('nfc_uid', uid).eq('active',true).single();
+  }
+  var data = res.data;
+  if(!data) { showAlert('scan-alert','ไม่พบบัตร: '+uid,'error'); return; }
   scanSt = data;
   document.getElementById('s-av').textContent = ini(data.name);
   document.getElementById('s-name').textContent = data.name;
@@ -973,7 +980,7 @@ function clearScan() {
 
 // ===== Topup =====
 async function initTopup() {
-  const { data } = await sb.from('students').select('id,name,grade,balance,barcode').eq('active',true).order('name');
+  const { data } = await sb.from('students').select('id,name,grade,balance,barcode,nfc_uid').eq('active',true).order('name');
   studentsCache = data || [];
   const sel = document.getElementById('tu-std');
   sel.innerHTML = '<option value="">-- เลือกนักเรียน --</option>';
@@ -1641,6 +1648,113 @@ function confirmWithPIN(label, callback) {
 }
 async function verifyConfirmPIN() {}
 
+
+
+// ===== NFC Registration =====
+function showNFCRegister() {
+  var m = document.createElement('div'); m.className = 'overlay';
+  m.innerHTML = '<div class="modal" style="width:420px">'
+    + '<div class="modal-title">&#128245; ลงทะเบียนบัตร NFC</div>'
+    + '<div style="background:#E6F1FB;border-radius:var(--r);padding:12px;margin-bottom:14px;font-size:13px;line-height:1.7">'
+    + '<strong>วิธีใช้:</strong><br>'
+    + '1. ค้นหาชื่อนักเรียน<br>'
+    + '2. กดเลือกนักเรียน<br>'
+    + '3. วางบัตร NFC บนเครื่องอ่าน แล้วกด Enter<br>'
+    + '4. กด "บันทึก" เพื่อผูกบัตรกับนักเรียน'
+    + '</div>'
+    + '<div class="fg"><div class="fl">ค้นหานักเรียน</div>'
+    + '<input type="text" id="nfc-search" placeholder="พิมพ์ชื่อหรือรหัส..." oninput="nfcSearchLive(this.value)">'
+    + '<div id="nfc-search-results" style="display:none;border:1px solid var(--border);border-radius:var(--r);margin-top:4px;background:#fff;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>'
+    + '</div>'
+    + '<div id="nfc-selected-info" style="display:none;background:var(--gray);padding:10px 12px;border-radius:var(--r);margin-bottom:12px">'
+    + '<div style="font-weight:500" id="nfc-st-name"></div>'
+    + '<div style="font-size:12px;color:var(--text2)" id="nfc-st-cur"></div>'
+    + '</div>'
+    + '<div class="fg"><div class="fl">UID บัตร NFC (วางบัตรแล้วกด Enter หรือพิมพ์เอง)</div>'
+    + '<div style="display:flex;gap:8px">'
+    + '<input type="text" id="nfc-uid-input" placeholder="แตะบัตรที่เครื่องอ่าน..." autocomplete="off" style="flex:1;font-size:15px" onkeydown="if(event.key===\'Enter\'&&this.value.trim())document.getElementById(\'nfc-save-btn\').click()">'
+    + '<button class="btn btn-sm" onclick="document.getElementById(\'nfc-uid-input\').focus()">&#128245; พร้อม</button>'
+    + '</div>'
+    + '</div>'
+    + '<div id="nfc-alert" style="margin-bottom:8px"></div>'
+    + '<div class="modal-btns">'
+    + '<button class="btn" onclick="closeModal()">ปิด</button>'
+    + '<button class="btn btn-primary" id="nfc-save-btn" onclick="saveNFCCard()">&#10003; บันทึกบัตร NFC</button>'
+    + '</div></div>';
+  document.getElementById('modal-root').appendChild(m);
+  setTimeout(function() { document.getElementById('nfc-search').focus(); }, 100);
+}
+
+var nfcSelectedStudent = null;
+
+function nfcSearchLive(q) {
+  if(!q || q.length < 1) { document.getElementById('nfc-search-results').style.display='none'; return; }
+  q = q.toLowerCase();
+  var list = studentsCache.filter(function(s) {
+    return s.name.toLowerCase().indexOf(q) >= 0 || s.id.toLowerCase().indexOf(q) >= 0;
+  }).slice(0, 8);
+  var el = document.getElementById('nfc-search-results');
+  if(list.length === 0) { el.style.display='none'; return; }
+  el.innerHTML = list.map(function(s) {
+    return '<div style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:10px" data-id="'+s.id+'">'
+      +'<div class="avatar" style="width:30px;height:30px;font-size:11px;flex-shrink:0">'+ini(s.name)+'</div>'
+      +'<div><div style="font-size:13px;font-weight:500">'+esc(s.name)+'</div>'
+      +'<div style="font-size:11px;color:var(--text2)">'+s.grade+' \u2022 '+s.id
+      +(s.nfc_uid ? ' \u2022 <span style="color:var(--green)">&#128245; มีบัตรแล้ว</span>' : ' \u2022 <span style="color:var(--text3)">ยังไม่มีบัตร</span>')
+      +'</div></div>'
+      +'</div>';
+  }).join('');
+  el.style.display = 'block';
+  el.querySelectorAll('[data-id]').forEach(function(row) {
+    row.addEventListener('click', function() { nfcSelectStudent(row.dataset.id); });
+  });
+}
+
+function nfcSelectStudent(sid) {
+  var s = studentsCache.find(function(st) { return st.id === sid; });
+  if(!s) return;
+  nfcSelectedStudent = s;
+  document.getElementById('nfc-search-results').style.display = 'none';
+  document.getElementById('nfc-search').value = s.name;
+  document.getElementById('nfc-st-name').textContent = s.name + ' — ' + s.grade;
+  document.getElementById('nfc-st-cur').textContent = s.nfc_uid ? 'บัตรปัจจุบัน: ' + s.nfc_uid : 'ยังไม่มีบัตร NFC';
+  document.getElementById('nfc-selected-info').style.display = 'block';
+  document.getElementById('nfc-uid-input').value = '';
+  document.getElementById('nfc-uid-input').focus();
+}
+
+async function saveNFCCard() {
+  if(!nfcSelectedStudent) {
+    document.getElementById('nfc-alert').innerHTML = '<div class="alert alert-error">กรุณาเลือกนักเรียนก่อน</div>';
+    return;
+  }
+  var uid = document.getElementById('nfc-uid-input').value.trim();
+  if(!uid) {
+    document.getElementById('nfc-alert').innerHTML = '<div class="alert alert-error">กรุณาวางบัตร NFC บนเครื่องอ่านก่อน</div>';
+    return;
+  }
+  // ตรวจสอบว่า UID ซ้ำกับคนอื่นไหม
+  var checkRes = await sb.from('students').select('id,name').eq('nfc_uid', uid).eq('active', true).single();
+  if(checkRes.data && checkRes.data.id !== nfcSelectedStudent.id) {
+    document.getElementById('nfc-alert').innerHTML = '<div class="alert alert-error">บัตรนี้ผูกกับ '+esc(checkRes.data.name)+' อยู่แล้ว</div>';
+    return;
+  }
+  var res = await sb.from('students').update({nfc_uid: uid}).eq('id', nfcSelectedStudent.id);
+  if(res.error) {
+    document.getElementById('nfc-alert').innerHTML = '<div class="alert alert-error">เกิดข้อผิดพลาด: '+res.error.message+'</div>';
+    return;
+  }
+  // อัปเดต cache
+  var cached = studentsCache.find(function(s) { return s.id === nfcSelectedStudent.id; });
+  if(cached) cached.nfc_uid = uid;
+  document.getElementById('nfc-alert').innerHTML = '<div class="alert alert-success">\u2713 บันทึกบัตร NFC ให้ '+esc(nfcSelectedStudent.name)+' แล้ว</div>';
+  document.getElementById('nfc-st-cur').textContent = 'บัตรปัจจุบัน: ' + uid;
+  document.getElementById('nfc-uid-input').value = '';
+  nfcSelectedStudent = null;
+  document.getElementById('nfc-search').value = '';
+  document.getElementById('nfc-selected-info').style.display = 'none';
+  document.getElementById('nfc-search').focus();
+}
 
 // ===== Shop Mode =====
 let currentShop = null; // null = admin
