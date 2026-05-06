@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_14.html -->
+<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_16.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -255,7 +255,7 @@ input:focus,select:focus{border-color:var(--blue);}
 
 
 <!-- Login Screen -->
-<div class="setup-screen" id="login-screen" style="display: flex;">
+<div class="setup-screen" id="login-screen" style="display:none">
   <div class="setup-box" style="width:340px;text-align:center">
     <div style="font-size:48px;margin-bottom:8px">🏫</div>
     <div class="setup-title">SchoolPay</div>
@@ -275,14 +275,14 @@ input:focus,select:focus{border-color:var(--blue);}
 </div>
 
 <!-- Shop Select Screen -->
-<div class="setup-screen" id="shop-screen" style="display:none">
+<div class="setup-screen" id="shop-screen" style="display: flex;">
   <div class="setup-box" style="width:480px">
     <div class="setup-title">🏪 เลือกร้านค้า</div>
     <div class="setup-sub">เลือกร้านค้าของคุณก่อนเริ่มใช้งาน<br>สามารถเปลี่ยนได้ตลอดเวลาโดยกดที่ชื่อร้านมุมบน</div>
-    <div id="shop-select-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+    <div id="shop-select-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"><div class="shop-card"><div class="shop-card-icon">🏪</div><div><div class="shop-card-name">ร้านเครื่องเขียน</div><div class="shop-card-cat">อุปกรณ์การเรียน</div></div></div><div class="shop-card"><div class="shop-card-icon">🏪</div><div><div class="shop-card-name">ร้านน้ำ</div><div class="shop-card-cat">เครื่องดื่ม</div></div></div><div class="shop-card"><div class="shop-card-icon">🏪</div><div><div class="shop-card-name">ร้านลูกชิ้น</div><div class="shop-card-cat">อาหาร</div></div></div><div class="shop-card"><div class="shop-card-icon">🏪</div><div><div class="shop-card-name">โรงอาหาร</div><div class="shop-card-cat">อาหาร</div></div></div></div>
     <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
       <div style="font-size:12px;color:var(--text2);margin-bottom:8px">หรือเข้าในฐานะ</div>
-      <button class="btn btn-primary" onclick="selectShop(null)" style="width:100%;background:#1e2a3a;border-color:#1e2a3a">☷ แอดมิน (เห็นทุกเมนู)</button>
+      <button class="btn btn-primary" onclick="showLoginScreen()" style="width:100%;background:#1e2a3a;border-color:#1e2a3a">👤 เข้าสู่ระบบพนักงาน (แอดมิน/แคชเชียร์)</button>
     </div>
   </div>
 </div>
@@ -1516,51 +1516,49 @@ async function delStaff(id, name) {
 
 
 // ===== Login Once System =====
+function showLoginScreen() {
+  document.getElementById('shop-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('li-id').value = '';
+  document.getElementById('li-pin').value = '';
+  document.getElementById('li-alert').innerHTML = '';
+  setTimeout(function() { document.getElementById('li-id').focus(); }, 100);
+}
+
 async function doLoginOnce() {
   var id = document.getElementById('li-id').value.trim().toUpperCase();
   var pin = document.getElementById('li-pin').value.trim();
   var alertEl = document.getElementById('li-alert');
-  if(!id || !pin) {
-    alertEl.innerHTML = '<div class="alert alert-error">กรุณาใส่รหัสพนักงานและ PIN</div>';
-    return;
-  }
+  if(!id || !pin) { alertEl.innerHTML = '<div class="alert alert-error">กรุณาใส่รหัสพนักงานและ PIN</div>'; return; }
   var btn = document.querySelector('#login-screen .btn-primary');
-  btn.textContent = 'กำลังตรวจสอบ...';
-  btn.disabled = true;
-
+  btn.textContent = 'กำลังตรวจสอบ...'; btn.disabled = true;
   try {
     var res = await sb.from('staff').select('*').eq('id', id).eq('pin', pin).eq('active', true).single();
     if(!res.data) throw new Error('ไม่พบ');
     currentStaff = res.data;
-    // บันทึก session ลง localStorage (จำไว้ถ้าไม่ logout)
-    localStorage.setItem('sp_staff', JSON.stringify({id: res.data.id, name: res.data.name, role: res.data.role, shop_id: res.data.shop_id}));
     document.getElementById('li-pin').value = '';
     document.getElementById('li-id').value = '';
     document.getElementById('li-alert').innerHTML = '';
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('logged-in-name').textContent = res.data.name;
-    // ซ่อน/แสดงเมนูตาม role
     applyRolePermissions(res.data.role);
-    // ถ้าเป็น shop staff ให้เข้าหน้าสแกนของร้านตัวเองเลย
-    console.log('Role:', res.data.role, 'ShopID:', res.data.shop_id);
     if(res.data.role === 'shop' && res.data.shop_id) {
       var shopRes = await sb.from('shops').select('*').eq('id', res.data.shop_id).single();
-      console.log('ShopRes:', JSON.stringify(shopRes));
-      if(shopRes.data) {
-        await selectShop(shopRes.data);
-      } else {
-        await showShopSelect();
-      }
-    } else {
-      await showShopSelect();
+      if(shopRes.data) { await selectShop(shopRes.data); return; }
     }
+    // admin/cashier ไปหน้า dashboard
+    document.getElementById('shop-screen').style.display = 'none';
+    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelector('[data-page="dashboard"]').classList.add('active');
+    document.getElementById('page-dashboard').classList.add('active');
+    document.getElementById('topbar-title').textContent = 'แดชบอร์ด';
+    curPage = 'dashboard'; loadPage('dashboard');
   } catch(e) {
     alertEl.innerHTML = '<div class="alert alert-error">รหัสพนักงานหรือ PIN ไม่ถูกต้อง</div>';
-    document.getElementById('li-pin').value = '';
-    document.getElementById('li-pin').focus();
+    document.getElementById('li-pin').value = ''; document.getElementById('li-pin').focus();
   }
-  btn.textContent = '\u2713 เข้าสู่ระบบ';
-  btn.disabled = false;
+  btn.textContent = '✓ เข้าสู่ระบบ'; btn.disabled = false;
 }
 
 function doLogout() {
@@ -2056,33 +2054,8 @@ async function _appInit() {
     setOnline(true);
     document.getElementById('setup-screen').style.display = 'none';
 
-    // เช็ค session ที่บันทึกไว้
-    var saved = localStorage.getItem('sp_staff');
-    if(saved) {
-      try {
-        var staff = JSON.parse(saved);
-        // verify กับ server ว่า staff ยังมีอยู่
-        var check = await sb.from('staff').select('*').eq('id', staff.id).eq('active', true).single();
-        if(check.data) {
-          currentStaff = check.data;
-          document.getElementById('logged-in-name').textContent = check.data.name;
-          applyRolePermissions(check.data.role);
-          if(check.data.role === 'shop' && check.data.shop_id) {
-            var shopRes = await sb.from('shops').select('*').eq('id', check.data.shop_id).single();
-            if(shopRes.data) { await selectShop(shopRes.data); }
-            else { await showShopSelect(); }
-          } else {
-            await showShopSelect();
-          }
-          return;
-        }
-      } catch(e) {}
-      localStorage.removeItem('sp_staff');
-    }
-
-    // แสดงหน้า login
-    document.getElementById('login-screen').style.display = 'flex';
-    setTimeout(function() { var inp=document.getElementById('li-id'); if(inp) inp.focus(); }, 100);
+    // ไปหน้าเลือกร้านก่อนเสมอ — login จะถามทีหลังตอนทำรายการ
+    await showShopSelect();
 
   } catch(e) {
     setOnline(false);
