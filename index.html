@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_10.html -->
+<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_12.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -56,11 +56,19 @@ window.SP_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
       then: function(resolve, reject) {
         var p = ['select=' + selectCols].concat(params);
         var h = makeHeaders(isSingle ? {'Accept':'application/vnd.pgrst.object+json'} : {});
-        return fetch(buildUrl(table, p), {headers: h})
+        var url = buildUrl(table, p);
+        console.log('FETCH:', url);
+        return fetch(url, {headers: h})
           .then(function(r) {
-            return r.json().then(function(d) {
-              if(!r.ok) return {data: null, error: d};
-              return {data: d, error: null};
+            return r.text().then(function(txt) {
+              console.log('RESP:', r.status, txt.slice(0,200));
+              try {
+                var d = JSON.parse(txt);
+                if(!r.ok) return {data: null, error: d};
+                return {data: d, error: null};
+              } catch(e) {
+                return {data: null, error: txt};
+              }
             });
           })
           .then(resolve, reject);
@@ -80,47 +88,48 @@ window.SP_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
         });
       },
 
-      // UPDATE — returns chainable with .eq()
+      // UPDATE
       update: function(body) {
         var updParams = params.slice();
-        return {
+        var updObj = {
           eq: function(col, val) {
             updParams.push(col + '=eq.' + encodeURIComponent(val));
-            var p = this;
-            p.then = function(resolve, reject) {
-              return fetch(buildUrl(table, updParams), {
-                method: 'PATCH',
-                headers: makeHeaders(),
-                body: JSON.stringify(body)
-              }).then(function(r) {
-                return r.status === 204
-                  ? {data: [], error: null}
-                  : r.json().then(function(d) { return r.ok ? {data: d, error: null} : {data: null, error: d}; });
-              }).then(resolve, reject);
-            };
-            return p;
+            return updObj;
+          },
+          then: function(resolve, reject) {
+            return fetch(buildUrl(table, updParams), {
+              method: 'PATCH',
+              headers: makeHeaders(),
+              body: JSON.stringify(body)
+            }).then(function(r) {
+              if(r.status === 204) return {data: [], error: null};
+              return r.json().then(function(d) {
+                return r.ok ? {data: d, error: null} : {data: null, error: d};
+              });
+            }).then(resolve, reject);
           }
         };
+        return updObj;
       },
 
-      // DELETE — returns chainable with .eq()
+      // DELETE
       delete: function() {
         var delParams = params.slice();
-        return {
+        var delObj = {
           eq: function(col, val) {
             delParams.push(col + '=eq.' + encodeURIComponent(val));
-            var p = this;
-            p.then = function(resolve, reject) {
-              return fetch(buildUrl(table, delParams), {
-                method: 'DELETE',
-                headers: makeHeaders()
-              }).then(function(r) {
-                return {data: null, error: r.ok ? null : 'delete failed'};
-              }).then(resolve, reject);
-            };
-            return p;
+            return delObj;
+          },
+          then: function(resolve, reject) {
+            return fetch(buildUrl(table, delParams), {
+              method: 'DELETE',
+              headers: makeHeaders()
+            }).then(function(r) {
+              return {data: null, error: r.ok ? null : 'delete failed'};
+            }).then(resolve, reject);
           }
         };
+        return delObj;
       }
     };
     return chain;
@@ -1532,7 +1541,18 @@ async function doLoginOnce() {
     document.getElementById('logged-in-name').textContent = res.data.name;
     // ซ่อน/แสดงเมนูตาม role
     applyRolePermissions(res.data.role);
-    await showShopSelect();
+    // ถ้าเป็น shop staff ให้เข้าหน้าสแกนของร้านตัวเองเลย
+    if(res.data.role === 'shop' && res.data.shop_id) {
+      var shopRes = await sb.from('shops').select('*').eq('id', res.data.shop_id).single();
+      if(shopRes.data) {
+        await selectShop(shopRes.data);
+      } else {
+        await showShopSelect();
+      }
+    } else {
+      // admin และ cashier เลือกร้านเอง
+      await showShopSelect();
+    }
   } catch(e) {
     alertEl.innerHTML = '<div class="alert alert-error">รหัสพนักงานหรือ PIN ไม่ถูกต้อง</div>';
     document.getElementById('li-pin').value = '';
@@ -2046,7 +2066,13 @@ async function _appInit() {
           currentStaff = check.data;
           document.getElementById('logged-in-name').textContent = check.data.name;
           applyRolePermissions(check.data.role);
-          await showShopSelect();
+          if(check.data.role === 'shop' && check.data.shop_id) {
+            var shopRes = await sb.from('shops').select('*').eq('id', check.data.shop_id).single();
+            if(shopRes.data) { await selectShop(shopRes.data); }
+            else { await showShopSelect(); }
+          } else {
+            await showShopSelect();
+          }
           return;
         }
       } catch(e) {}
