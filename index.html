@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_33.html -->
+<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_35.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -494,7 +494,7 @@ input:focus,select:focus{border-color:var(--blue);}
           <div class="fg">
             <div class="fl">สแกนบาร์โค้ด หรือ พิมพ์ชื่อ/รหัส</div>
             <div style="display:flex;gap:8px">
-              <input type="text" id="tu-search" placeholder="สแกนบัตร หรือ พิมพ์ชื่อ..." autocomplete="off" onkeydown="if(event.key===&#39;Enter&#39;)tuSearch()" oninput="tuSearchLive(this.value)">
+              <input type="text" id="tu-search" placeholder="แตะบัตร NFC / สแกนบาร์โค้ด / พิมพ์ชื่อ..." autocomplete="off" onkeydown="if(event.key===&#39;Enter&#39;)tuSearch()" oninput="tuSearchLive(this.value)">
               <button class="btn btn-sm" onclick="tuSearch()" style="white-space:nowrap;height:35px">ค้นหา</button>
             </div>
             <!-- ผลค้นหา -->
@@ -1104,8 +1104,13 @@ function tuSearchLive(q) {
 async function tuSearch() {
   var q = document.getElementById('tu-search').value.trim();
   if(!q) return;
-  var byBarcode = studentsCache.find(function(s) { return s.barcode === q; });
-  if(byBarcode) { tuSelectStudent(byBarcode.id); return; }
+  // ค้นหาด้วย barcode ก่อน
+  var found = studentsCache.find(function(s) { return s.barcode === q; });
+  // ถ้าไม่เจอ ค้นด้วย nfc_uid
+  if(!found) found = studentsCache.find(function(s) { return s.nfc_uid && s.nfc_uid === q; });
+  // ถ้าเจอ select เลย
+  if(found) { tuSelectStudent(found.id); return; }
+  // ถ้าไม่เจอเลย ค้นหาแบบ live
   tuSearchLive(q);
 }
 
