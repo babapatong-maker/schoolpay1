@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_30.html -->
+<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_31.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -99,12 +99,14 @@ window.SP_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
           then: function(resolve, reject) {
             return fetch(buildUrl(table, updParams), {
               method: 'PATCH',
-              headers: makeHeaders(),
+              headers: makeHeaders({'Prefer': 'return=minimal'}),
               body: JSON.stringify(body)
             }).then(function(r) {
-              if(r.status === 204) return {data: [], error: null};
-              return r.json().then(function(d) {
-                return r.ok ? {data: d, error: null} : {data: null, error: d};
+              if(r.ok || r.status === 204) return {data: [], error: null};
+              return r.text().then(function(t) {
+                console.error('PATCH error:', r.status, t);
+                try { return {data: null, error: JSON.parse(t)}; }
+                catch(e) { return {data: null, error: t}; }
               });
             }).then(resolve, reject);
           }
@@ -123,9 +125,13 @@ window.SP_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
           then: function(resolve, reject) {
             return fetch(buildUrl(table, delParams), {
               method: 'DELETE',
-              headers: makeHeaders()
+              headers: makeHeaders({'Prefer': 'return=minimal'})
             }).then(function(r) {
-              return {data: null, error: r.ok ? null : 'delete failed'};
+              if(r.ok || r.status === 204) return {data: null, error: null};
+              return r.text().then(function(t) {
+                console.error('DELETE error:', r.status, t);
+                return {data: null, error: t};
+              });
             }).then(resolve, reject);
           }
         };
