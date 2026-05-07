@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_37.html -->
+<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_39.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -423,7 +423,7 @@ input:focus,select:focus{border-color:var(--blue);}
         <div class="card-title">▣ สแกนบาร์โค้ดบัตรนักเรียน</div>
         <div style="display:flex;gap:8px;align-items:center">
           <div style="font-size:28px">▣</div>
-          <input type="text" id="barcode-input" placeholder="พิมพ์หรือสแกนบาร์โค้ดนักเรียน แล้วกด Enter" autocomplete="off" autofocus="" style="flex:1;font-size:15px;padding:12px 14px;border:2px solid var(--blue);border-radius:var(--rl);background:var(--blue-l);" onkeydown="if(event.key===&#39;Enter&#39;&amp;&amp;this.value.trim()){processScan(this.value.trim());this.value=&#39;&#39;;}">
+          <input type="text" id="barcode-input" autofocus="" placeholder="พิมพ์หรือสแกนบาร์โค้ดนักเรียน แล้วกด Enter" autocomplete="off" style="flex:1;font-size:15px;padding:12px 14px;border:2px solid var(--blue);border-radius:var(--rl);background:var(--blue-l);" onkeydown="if(event.key===&#39;Enter&#39;&amp;&amp;this.value.trim()){processScan(this.value.trim());this.value=&#39;&#39;;}">
           <button class="btn btn-primary" onclick="doManualScan()" style="height:46px;white-space:nowrap;padding:0 16px">สแกน</button>
         </div>
       </div>
@@ -813,6 +813,11 @@ function navTopup(sid) {
 
 async function initScan() {
   clearScan();
+  // autofocus ช่องสแกนทันที
+  setTimeout(function() {
+    var inp = document.getElementById('barcode-input');
+    if(inp) inp.focus();
+  }, 300);
   const { data } = await sb.from('shops').select('*').eq('active',true).order('name');
   shopsCache = data || [];
   const sel = document.getElementById('scan-shop');
@@ -873,9 +878,9 @@ async function processScan(barcode) {
   document.getElementById('s-info').textContent = data.id+' • '+data.grade+(data.phone?' • '+data.phone:'');
   const b=document.getElementById('s-bal'); b.textContent=fmt(data.balance); b.className='scan-bal-val'+(data.balance<50?' low':'');
   document.getElementById('scan-result').style.display='block';
-  // ซ่อน/แสดง manual input ตาม mode
+  // แสดง manual-row เสมอ (ทั้ง shop และ admin)
   var manualRow = document.getElementById('manual-row');
-  if(manualRow) manualRow.style.display = currentShop ? 'none' : 'flex';
+  if(manualRow) manualRow.style.display = 'flex';
   // auto-select shop และโหลดสินค้า
   const shopSel = document.getElementById('scan-shop');
   if(currentShop) {
@@ -1072,9 +1077,13 @@ function clearScan() {
   scanSt=null; bcBuf='';
   document.getElementById('scan-result').style.display='none';
   document.getElementById('scanner-box').style.display='block';
-  
   document.getElementById('scan-alert').innerHTML='';
   cart=[];renderCart();
+  // focus กลับช่องสแกนอัตโนมัติ
+  setTimeout(function() {
+    var inp = document.getElementById('barcode-input');
+    if(inp) inp.focus();
+  }, 100);
 }
 
 // ===== Topup =====
@@ -1431,13 +1440,8 @@ async function loadHistory() {
 
 // ===== PIN Confirm (login แล้วทำได้เลย) =====
 function confirmWithPIN(label, callback) {
-  if(currentStaff) {
-    callback();
-    return;
-  }
-  // ถ้ายังไม่ได้ login ให้กลับไปหน้า login
-  alert('กรุณาเข้าสู่ระบบก่อนครับ');
-  showLoginScreen();
+  // ทำงานได้เลย ไม่ต้อง login
+  callback();
 }
 async function verifyConfirmPIN() {}
 
