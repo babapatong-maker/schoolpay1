@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_32.html -->
+<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_33.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -655,8 +655,21 @@ input:focus,select:focus{border-color:var(--blue);}
 <div id="modal-root"></div>
 
 <script>
+// ===== Global Variables =====
+var sb = null;
+var currentStaff = null;
+var currentShop = null;
+var curPage = 'dashboard';
+var cart = [];
+var scanSt = null;
+var studentsCache = [];
+var shopsCache = [];
+var shopItemsCache = {};
+var bcBuf = '';
+var bcTimer = null;
+var nfcSelectedStudent = null;
+
 // ===== Supabase Setup =====
-let sb = null;
 
 function initSupabase(url, key) {
   try {
@@ -718,9 +731,9 @@ function showAlert(id,msg,type,dur) {
 function closeModal() { document.getElementById('modal-root').innerHTML=''; }
 
 // ===== Navigation =====
-let curPage = 'dashboard';
-let studentsCache = [];
-let shopsCache = [];
+
+
+
 
 document.querySelectorAll('.nav-item').forEach(el => {
   el.addEventListener('click', () => {
@@ -796,7 +809,7 @@ function navTopup(sid) {
 }
 
 // ===== Scan =====
-let scanSt = null, bcBuf = '', bcTimer = null;
+
 
 async function initScan() {
   clearScan();
@@ -931,8 +944,8 @@ async function delProduct(id,name) {
 }
 
 // ===== Cart System =====
-let cart = [];
-let shopItemsCache = {};
+
+
 
 async function loadShopItems() {
   // ใช้ currentShop ก่อน ถ้าไม่มีค่อยดูจาก dropdown
@@ -1545,7 +1558,6 @@ function importExcel(){
 }
 
 // ===== NFC Register =====
-var nfcSelectedStudent=null;
 function showNFCRegister(){
   var m=document.createElement('div');m.className='overlay';
   m.innerHTML='<div class="modal" style="width:420px">'
