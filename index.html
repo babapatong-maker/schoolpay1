@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_35.html -->
+<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_36.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -494,7 +494,7 @@ input:focus,select:focus{border-color:var(--blue);}
           <div class="fg">
             <div class="fl">สแกนบาร์โค้ด หรือ พิมพ์ชื่อ/รหัส</div>
             <div style="display:flex;gap:8px">
-              <input type="text" id="tu-search" placeholder="แตะบัตร NFC / สแกนบาร์โค้ด / พิมพ์ชื่อ..." autocomplete="off" onkeydown="if(event.key===&#39;Enter&#39;)tuSearch()" oninput="tuSearchLive(this.value)">
+              <input type="text" id="tu-search" placeholder="แตะบัตร NFC / สแกนบาร์โค้ด / พิมพ์ชื่อ..." autocomplete="off" onkeydown="if(event.key===&#39;Enter&#39;){tuSearch();return;}" oninput="tuNFCDetect(this.value)">
               <button class="btn btn-sm" onclick="tuSearch()" style="white-space:nowrap;height:35px">ค้นหา</button>
             </div>
             <!-- ผลค้นหา -->
@@ -840,6 +840,24 @@ function doManualScan() {
   if(val) { processScan(val); input.value=''; }
 }
 
+var _scanNFCTimer = null;
+var _scanLastInput = 0;
+function scanNFCDetect(val) {
+  var now = Date.now();
+  var timeSinceLast = now - _scanLastInput;
+  _scanLastInput = now;
+  if(timeSinceLast < 50 && val.length > 3) {
+    clearTimeout(_scanNFCTimer);
+    _scanNFCTimer = setTimeout(function() {
+      var inp = document.getElementById('barcode-input');
+      if(inp && inp.value.trim()) {
+        processScan(inp.value.trim());
+        inp.value = '';
+      }
+    }, 100);
+  }
+}
+
 async function processScan(barcode) {
   var uid = barcode.trim();
   // ค้นหาด้วย barcode ก่อน ถ้าไม่เจอค้นด้วย nfc_uid
@@ -1099,6 +1117,26 @@ function tuSearchLive(q) {
   el.querySelectorAll('[data-id]').forEach(function(row) {
     row.addEventListener('click', function() { tuSelectStudent(row.dataset.id); });
   });
+}
+
+var _tuNFCTimer = null;
+var _tuLastInput = 0;
+function tuNFCDetect(val) {
+  var now = Date.now();
+  var timeSinceLast = now - _tuLastInput;
+  _tuLastInput = now;
+  // ถ้าพิมพ์เร็วมาก (< 50ms ต่อตัวอักษร) = NFC/Scanner
+  if(timeSinceLast < 50 && val.length > 3) {
+    clearTimeout(_tuNFCTimer);
+    _tuNFCTimer = setTimeout(function() {
+      // หยุดพิมพ์แล้ว ลองค้นหาอัตโนมัติ
+      tuSearch();
+    }, 100);
+  } else {
+    // พิมพ์ช้า = มือพิมพ์ ให้แสดง dropdown
+    clearTimeout(_tuNFCTimer);
+    tuSearchLive(val);
+  }
 }
 
 async function tuSearch() {
