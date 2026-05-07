@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_31.html -->
+<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_32.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1368,6 +1368,19 @@ async function loadHistory() {
   });
 }
 
+
+
+// ===== PIN Confirm (login แล้วทำได้เลย) =====
+function confirmWithPIN(label, callback) {
+  if(currentStaff) {
+    callback();
+    return;
+  }
+  // ถ้ายังไม่ได้ login ให้กลับไปหน้า login
+  alert('กรุณาเข้าสู่ระบบก่อนครับ');
+  showLoginScreen();
+}
+async function verifyConfirmPIN() {}
 
 function showLoginScreen() {
   document.getElementById('shop-screen').style.display = 'none';
