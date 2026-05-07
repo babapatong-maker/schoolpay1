@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_36.html -->
+<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_37.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -458,7 +458,7 @@ input:focus,select:focus{border-color:var(--blue);}
           </div>
 
           <!-- กรอกเพิ่มเติม -->
-          <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px">
+          <div id="manual-row"><div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px">
             <div style="flex:1">
               <div class="fl">ชื่อรายการ (ไม่บังคับ)</div>
               <input type="text" id="manual-item-name" placeholder="เช่น ข้าวผัด">
@@ -468,7 +468,7 @@ input:focus,select:focus{border-color:var(--blue);}
               <input type="number" id="manual-item-price" placeholder="0" min="1" onkeydown="if(event.key===&#39;Enter&#39;)addManualItem()">
             </div>
             <button class="btn" onclick="addManualItem()" style="height:35px;white-space:nowrap;flex-shrink:0">+ เพิ่ม</button>
-          </div>
+          </div></div>
 
           <!-- ยอดรวมและตัดเงิน -->
           <div style="background:#1e2a3a;border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
@@ -873,6 +873,9 @@ async function processScan(barcode) {
   document.getElementById('s-info').textContent = data.id+' • '+data.grade+(data.phone?' • '+data.phone:'');
   const b=document.getElementById('s-bal'); b.textContent=fmt(data.balance); b.className='scan-bal-val'+(data.balance<50?' low':'');
   document.getElementById('scan-result').style.display='block';
+  // ซ่อน/แสดง manual input ตาม mode
+  var manualRow = document.getElementById('manual-row');
+  if(manualRow) manualRow.style.display = currentShop ? 'none' : 'flex';
   // auto-select shop และโหลดสินค้า
   const shopSel = document.getElementById('scan-shop');
   if(currentShop) {
