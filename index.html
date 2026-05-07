@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_27.html -->
+<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_30.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1264,6 +1264,105 @@ async function voidTransaction(txId, amount, studentName, txType) {
 // ===== Init =====
 
 // ===== Login =====
+
+// ===== Load Shops =====
+async function loadShops() {
+  var res = await sb.from('shops').select('*').order('name');
+  shopsCache = res.data || [];
+  var el = document.getElementById('sh-list');
+  if(!shopsCache.length){el.innerHTML='<div class="empty">ยังไม่มีร้านค้า</div>';return;}
+  el.innerHTML='';
+  shopsCache.forEach(function(s) {
+    var row=document.createElement('div'); row.className='list-row';
+    row.innerHTML='<div class="shop-icon">&#127978;</div>'
+      +'<div class="row-info"><div class="row-name">'+esc(s.name)+'</div><div class="row-sub">'+s.id+' \u2022 '+s.category+'</div></div>'
+      +'<span class="badge '+(s.active?'badge-on':'badge-off')+'">'+(s.active?'เปิด':'ปิด')+'</span>'
+      +'<div class="row-actions">'
+      +'<button class="btn btn-sm" data-tog="'+s.id+'" data-active="'+(s.active?'1':'0')+'">'+(s.active?'ปิดร้าน':'เปิดร้าน')+'</button>'
+      +'<button class="btn btn-danger btn-sm" data-del="'+s.id+'" data-name="'+esc(s.name)+'">ลบ</button>'
+      +'</div>';
+    el.appendChild(row);
+    row.querySelector('[data-tog]').addEventListener('click',function(){
+      toggleShop(this.getAttribute('data-tog'), this.getAttribute('data-active')!=='1');
+    });
+    row.querySelector('[data-del]').addEventListener('click',function(){
+      delShop(this.getAttribute('data-del'), this.getAttribute('data-name'));
+    });
+  });
+}
+
+// ===== Load Staff =====
+async function loadStaffMgmt() {
+  var res = await sb.from('staff').select('*,shops(name)').order('role').order('name');
+  var el = document.getElementById('staff-list');
+  var data = res.data || [];
+  if(!data.length){el.innerHTML='<div class="empty">ยังไม่มีพนักงาน</div>';return;}
+  el.innerHTML='';
+  var roleLabel={admin:'&#9783; แอดมิน',cashier:'+ แคชเชียร์',shop:'&#127978; ร้านค้า'};
+  var roleBg={admin:'#1e2a3a',cashier:'var(--blue)',shop:'#1D6F42'};
+  data.forEach(function(s) {
+    var row=document.createElement('div'); row.className='list-row';
+    var bg=roleBg[s.role]||'#666';
+    row.innerHTML='<div class="avatar" style="background:'+bg+';color:#fff;font-size:11px">'+s.id+'</div>'
+      +'<div class="row-info"><div class="row-name">'+esc(s.name)+'</div>'
+      +'<div class="row-sub"><span style="background:'+bg+';color:#fff;padding:1px 7px;border-radius:99px;font-size:11px">'+(roleLabel[s.role]||s.role)+'</span>'
+      +(s.shops?' \u2014 '+esc(s.shops.name):'')+'</div></div>'
+      +'<div style="font-size:12px;color:var(--text3)">PIN: '+s.pin+'</div>'
+      +'<div class="row-actions">'
+      +'<button class="btn btn-sm" data-edit="'+s.id+'">แก้ไข</button>'
+      +'<button class="btn btn-danger btn-sm" data-del="'+s.id+'" data-name="'+esc(s.name)+'">ลบ</button>'
+      +'</div>';
+    el.appendChild(row);
+    var sRef=s;
+    row.querySelector('[data-edit]').addEventListener('click',function(){_showStaffModal(sRef);});
+    row.querySelector('[data-del]').addEventListener('click',function(){
+      delStaff(this.getAttribute('data-del'),this.getAttribute('data-name'));
+    });
+  });
+}
+
+// ===== Load History =====
+async function loadHistory() {
+  document.getElementById('hi-list').innerHTML='<div class="loading">&#9203; กำลังโหลด...</div>';
+  var sid=document.getElementById('hi-std').value;
+  var type=document.getElementById('hi-type').value;
+  var date=document.getElementById('hi-date').value;
+  var q=sb.from('transactions').select('*,students(name),shops(name)').order('created_at',{ascending:false}).limit(200);
+  if(sid) q=q.eq('student_id',sid);
+  if(type) q=q.eq('type',type);
+  if(date) q=q.gte('created_at',date+'T00:00:00').lt('created_at',date+'T23:59:59');
+  var res=await q;
+  var data=res.data||[];
+  var el=document.getElementById('hi-list');
+  if(!data.length){el.innerHTML='<div class="empty">ไม่มีรายการ</div>';return;}
+  el.innerHTML='';
+  var isAdmin=currentStaff&&(currentStaff.role==='admin'||currentStaff.role==='cashier');
+  data.forEach(function(tx) {
+    var tp=tx.type==='topup';
+    var voided=tx.voided;
+    var dt=new Date(tx.created_at).toLocaleString('th-TH',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'2-digit'});
+    var row=document.createElement('div'); row.className='list-row';
+    row.style.opacity=voided?'0.5':'1';
+    var vBadge=voided?'<span style="background:#f0f0f0;color:#999;font-size:10px;padding:1px 6px;border-radius:99px;margin-left:4px">ยกเลิกแล้ว</span>':'';
+    var cancelBtn=(!voided&&isAdmin)?'<button style="font-size:11px;padding:3px 8px;border-radius:4px;cursor:pointer;border:1px solid #F09595;background:#FCEBEB;color:#A32D2D;margin-top:4px;display:block" data-txid="'+tx.id+'" data-amount="'+tx.amount+'" data-name="'+esc(tx.students?tx.students.name:'?')+'" data-type="'+tx.type+'">ยกเลิก</button>':'';
+    row.innerHTML='<div class="tx-dot '+(tp?'in':'out')+'"></div>'
+      +'<div class="row-info"><div class="row-name">'+esc(tx.students?tx.students.name:'?')+' \u2014 '+esc(tx.shops?tx.shops.name:(tp?'เติมเงิน':'ซื้อสินค้า'))+vBadge+'</div>'
+      +'<div class="row-sub">'+dt+'</div></div>'
+      +'<div style="text-align:right">'
+      +'<div class="tx-amount '+(tp?'in':'out')+'">'+(tp?'+':'\u2212')+fmt(tx.amount)+'</div>'
+      +'<div style="font-size:11px;color:var(--text3)">ยอด: '+fmt(tx.balance_after)+'</div>'
+      +cancelBtn+'</div>';
+    el.appendChild(row);
+    if(!voided&&isAdmin) {
+      var btn=row.querySelector('[data-txid]');
+      if(btn) btn.addEventListener('click',function(){
+        voidTransaction(parseInt(this.getAttribute('data-txid')),parseFloat(this.getAttribute('data-amount')),this.getAttribute('data-name'),this.getAttribute('data-type'));
+      });
+    }
+  });
+}
+
+
 function showLoginScreen() {
   document.getElementById('shop-screen').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
