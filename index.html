@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)file:///C:/Users/tt/Downloads/index_39.html -->
-<html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="th">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SchoolPay — ระบบบัตรนักเรียน</title>
 
@@ -322,82 +322,87 @@ input:focus,select:focus{border-color:var(--blue);}
 <!-- Login Screen -->
 <div class="setup-screen" id="login-screen" style="display:none">
   <div class="setup-box" style="width:340px;text-align:center">
-    <div style="font-size:48px;margin-bottom:8px">🏫</div>
+    <div style="font-size:48px;margin-bottom:8px">&#127979;</div>
     <div class="setup-title">SchoolPay</div>
     <div class="setup-sub" style="margin-bottom:20px">กรุณาเข้าสู่ระบบก่อนใช้งาน</div>
     <div class="fg" style="text-align:left">
       <div class="fl">รหัสพนักงาน</div>
-      <input type="text" id="li-id" placeholder="เช่น ST001" autocomplete="off" style="text-transform:uppercase;font-size:15px;padding:10px" onkeydown="if(event.key===&#39;Enter&#39;)document.getElementById(&#39;li-pin&#39;).focus()">
+      <input type="text" id="li-id" placeholder="เช่น ST001" autocomplete="off"
+        style="text-transform:uppercase;font-size:15px;padding:10px"
+        onkeydown="if(event.key==='Enter')document.getElementById('li-pin').focus()">
     </div>
     <div class="fg" style="text-align:left">
       <div class="fl">PIN (4 หลัก)</div>
-      <input type="password" id="li-pin" placeholder="****" maxlength="4" style="font-size:20px;letter-spacing:8px;padding:10px;text-align:center" onkeydown="if(event.key===&#39;Enter&#39;)doLoginOnce()">
+      <input type="password" id="li-pin" placeholder="****" maxlength="4"
+        style="font-size:20px;letter-spacing:8px;padding:10px;text-align:center"
+        onkeydown="if(event.key==='Enter')doLoginOnce()">
     </div>
     <div id="li-alert" style="margin-bottom:10px"></div>
-    <button class="btn btn-primary" onclick="doLoginOnce()" style="width:100%;padding:12px;font-size:15px">✓ เข้าสู่ระบบ</button>
+    <button class="btn btn-primary" onclick="doLoginOnce()"
+      style="width:100%;padding:12px;font-size:15px">&#10003; เข้าสู่ระบบ</button>
     <div style="margin-top:12px;font-size:11px;color:var(--text3)">ติดต่อแอดมินถ้าลืม PIN</div>
   </div>
 </div>
 
 <!-- Shop Select Screen -->
-<div class="setup-screen" id="shop-screen" style="display: flex;">
+<div class="setup-screen" id="shop-screen" style="display:none">
   <div class="setup-box" style="width:480px">
-    <div class="setup-title">🏪 เลือกร้านค้า</div>
+    <div class="setup-title">&#127978; เลือกร้านค้า</div>
     <div class="setup-sub">เลือกร้านค้าของคุณก่อนเริ่มใช้งาน<br>สามารถเปลี่ยนได้ตลอดเวลาโดยกดที่ชื่อร้านมุมบน</div>
-    <div id="shop-select-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"><div class="shop-card"><div class="shop-card-icon">🏪</div><div><div class="shop-card-name">ร้านเครื่องเขียน</div><div class="shop-card-cat">อุปกรณ์การเรียน</div></div></div><div class="shop-card"><div class="shop-card-icon">🏪</div><div><div class="shop-card-name">ร้านน้ำ</div><div class="shop-card-cat">เครื่องดื่ม</div></div></div><div class="shop-card"><div class="shop-card-icon">🏪</div><div><div class="shop-card-name">ร้านลูกชิ้น</div><div class="shop-card-cat">อาหาร</div></div></div><div class="shop-card"><div class="shop-card-icon">🏪</div><div><div class="shop-card-name">โรงอาหาร</div><div class="shop-card-cat">อาหาร</div></div></div></div>
+    <div id="shop-select-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
     <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
       <div style="font-size:12px;color:var(--text2);margin-bottom:8px">หรือเข้าในฐานะ</div>
-      <button class="btn btn-primary" onclick="showLoginScreen()" style="width:100%;background:#1e2a3a;border-color:#1e2a3a">👤 เข้าสู่ระบบพนักงาน (แอดมิน/แคชเชียร์)</button>
+      <button class="btn btn-primary" onclick="showLoginScreen()" style="width:100%;background:#1e2a3a;border-color:#1e2a3a">&#128100; เข้าสู่ระบบพนักงาน (แอดมิน/แคชเชียร์)</button>
     </div>
   </div>
 </div>
 
 <!-- Setup Screen (แสดงครั้งแรกถ้ายังไม่ได้ตั้งค่า) -->
-<div class="setup-screen" id="setup-screen" style="display: none;">
+<div class="setup-screen" id="setup-screen" style="display:none!important">
   <div class="setup-box">
-    <div class="setup-title">🏫 ตั้งค่า SchoolPay</div>
+    <div class="setup-title">&#127979; ตั้งค่า SchoolPay</div>
     <div class="setup-sub">ใส่ข้อมูล Supabase เพื่อเชื่อมต่อฐานข้อมูล<br>ทำครั้งเดียว จากนั้นระบบจะจำไว้อัตโนมัติ</div>
     <div class="setup-step">
       <strong>วิธีหา URL และ Key:</strong><br>
-      1. เปิด <a href="https://supabase.com/" target="_blank">supabase.com</a> → เข้า Project<br>
+      1. เปิด <a href="https://supabase.com" target="_blank">supabase.com</a> → เข้า Project<br>
       2. คลิก Settings → API<br>
       3. Copy "Project URL" และ "anon public key"
     </div>
     <div class="fg"><div class="fl">Supabase Project URL</div><input id="setup-url" type="text" placeholder="https://xxxxxxxxxxxx.supabase.co"></div>
     <div class="fg"><div class="fl">Supabase Anon Key</div><input id="setup-key" type="text" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></div>
     <div id="setup-alert"></div>
-    <button class="btn btn-primary" onclick="saveSetup()" style="width:100%;margin-top:4px">✓ เชื่อมต่อและเริ่มใช้งาน</button>
+    <button class="btn btn-primary" onclick="saveSetup()" style="width:100%;margin-top:4px">&#10003; เชื่อมต่อและเริ่มใช้งาน</button>
   </div>
 </div>
 
 <div class="app">
 <div class="sidebar">
   <div class="sidebar-logo">
-    <div class="logo-name">🏫 SchoolPay</div>
+    <div class="logo-name">&#127979; SchoolPay</div>
     <div class="logo-sub">ระบบบัตรนักเรียน v2.0</div>
   </div>
   <div class="nav">
-    <div class="nav-item active" data-page="dashboard"><span class="nav-icon">☷</span> แดชบอร์ด</div>
-    <div class="nav-item" data-page="scan"><span class="nav-icon">▣</span> สแกนบัตร</div>
-    <div class="nav-item" data-page="topup"><span class="nav-icon">+</span> เติมเงิน</div>
-    <div class="nav-item" data-page="students"><span class="nav-icon">👥</span> นักเรียน</div>
-    <div class="nav-item" data-page="history"><span class="nav-icon">📋</span> ประวัติ</div>
-    <div class="nav-item" data-page="shops"><span class="nav-icon">🏪</span> ร้านค้า</div>
-    <div class="nav-item" data-page="products"><span class="nav-icon">🛒</span> สินค้า/ราคา</div>
-    <div class="nav-item" data-page="report"><span class="nav-icon">📄</span> รายงาน/PDF</div>
-    <div class="nav-item admin-only" data-page="staffmgmt"><span class="nav-icon">👤</span> จัดการพนักงาน</div>
+    <div class="nav-item active" data-page="dashboard"><span class="nav-icon">&#9783;</span> แดชบอร์ด</div>
+    <div class="nav-item" data-page="scan"><span class="nav-icon">&#9635;</span> สแกนบัตร</div>
+    <div class="nav-item" data-page="topup"><span class="nav-icon">&#43;</span> เติมเงิน</div>
+    <div class="nav-item" data-page="students"><span class="nav-icon">&#128101;</span> นักเรียน</div>
+    <div class="nav-item" data-page="history"><span class="nav-icon">&#128203;</span> ประวัติ</div>
+    <div class="nav-item" data-page="shops"><span class="nav-icon">&#127978;</span> ร้านค้า</div>
+    <div class="nav-item" data-page="products"><span class="nav-icon">&#128722;</span> สินค้า/ราคา</div>
+    <div class="nav-item" data-page="report"><span class="nav-icon">&#128196;</span> รายงาน/PDF</div>
+    <div class="nav-item admin-only" data-page="staffmgmt"><span class="nav-icon">&#128100;</span> จัดการพนักงาน</div>
   </div>
   <div class="sidebar-footer">
-    <div class="ver"><span class="status-dot online" id="status-dot"></span><span id="status-text">เชื่อมต่อแล้ว</span></div>
+    <div class="ver"><span class="status-dot" id="status-dot"></span><span id="status-text">กำลังเชื่อมต่อ...</span></div>
   </div>
 </div>
 
 <div class="main">
   <div class="topbar">
-    <div style="display:flex;align-items:center;gap:10px"><div class="page-title" id="topbar-title">แดชบอร์ด</div><div id="current-shop-badge" style="display:none"><span class="shop-badge" onclick="showShopSelect()"><span id="current-shop-icon">🏪</span> <span id="current-shop-name"></span> <span style="color:var(--text3);font-size:11px">เปลี่ยน</span></span></div></div>
+    <div style="display:flex;align-items:center;gap:10px"><div class="page-title" id="topbar-title">แดชบอร์ด</div><div id="current-shop-badge" style="display:none"><span class="shop-badge" onclick="showShopSelect()"><span id="current-shop-icon">&#127978;</span> <span id="current-shop-name"></span> <span style="color:var(--text3);font-size:11px">เปลี่ยน</span></span></div></div>
     <div class="topbar-right">
-      <button class="btn btn-sm" onclick="exportCSV()">💾 CSV</button>
-      <button class="btn btn-sm" onclick="resetSetup()">⚙️ ตั้งค่า</button>
+      <button class="btn btn-sm" onclick="exportCSV()">&#128190; CSV</button>
+      <button class="btn btn-sm" onclick="resetSetup()">&#9881;&#65039; ตั้งค่า</button>
     </div>
   </div>
   <div class="content">
@@ -411,8 +416,8 @@ input:focus,select:focus{border-color:var(--blue);}
         <div class="metric"><div class="metric-label">ยอดต่ำ (&lt;50฿)</div><div class="metric-value red" id="m-l">...</div></div>
       </div>
       <div class="two-col">
-        <div class="card"><div class="card-title">📅 ธุรกรรมล่าสุด</div><div id="d-recent"></div></div>
-        <div class="card"><div class="card-title">⚠️ ยอดเงินต่ำ</div><div id="d-low"></div></div>
+        <div class="card"><div class="card-title">&#128197; ธุรกรรมล่าสุด</div><div id="d-recent"></div></div>
+        <div class="card"><div class="card-title">&#9888;&#65039; ยอดเงินต่ำ</div><div id="d-low"></div></div>
       </div>
     </div>
 
@@ -420,10 +425,14 @@ input:focus,select:focus{border-color:var(--blue);}
     <div class="page" id="page-scan">
       <div id="scan-alert"></div>
       <div class="card">
-        <div class="card-title">▣ สแกนบาร์โค้ดบัตรนักเรียน</div>
+        <div class="card-title">&#9635; สแกนบาร์โค้ดบัตรนักเรียน</div>
         <div style="display:flex;gap:8px;align-items:center">
-          <div style="font-size:28px">▣</div>
-          <input type="text" id="barcode-input" autofocus="" placeholder="พิมพ์หรือสแกนบาร์โค้ดนักเรียน แล้วกด Enter" autocomplete="off" style="flex:1;font-size:15px;padding:12px 14px;border:2px solid var(--blue);border-radius:var(--rl);background:var(--blue-l);" onkeydown="if(event.key===&#39;Enter&#39;&amp;&amp;this.value.trim()){processScan(this.value.trim());this.value=&#39;&#39;;}">
+          <div style="font-size:28px">&#9635;</div>
+          <input type="text" id="barcode-input" autofocus
+            placeholder="พิมพ์หรือสแกนบาร์โค้ดนักเรียน แล้วกด Enter"
+            autocomplete="off" autofocus
+            style="flex:1;font-size:15px;padding:12px 14px;border:2px solid var(--blue);border-radius:var(--rl);background:var(--blue-l);"
+            onkeydown="if(event.key===&#39;Enter&#39;&&this.value.trim()){processScan(this.value.trim());this.value=&#39;&#39;;}">
           <button class="btn btn-primary" onclick="doManualScan()" style="height:46px;white-space:nowrap;padding:0 16px">สแกน</button>
         </div>
       </div>
@@ -465,7 +474,7 @@ input:focus,select:focus{border-color:var(--blue);}
             </div>
             <div style="width:100px">
               <div class="fl">ราคา (฿)</div>
-              <input type="number" id="manual-item-price" placeholder="0" min="1" onkeydown="if(event.key===&#39;Enter&#39;)addManualItem()">
+              <input type="number" id="manual-item-price" placeholder="0" min="1" onkeydown="if(event.key==='Enter')addManualItem()">
             </div>
             <button class="btn" onclick="addManualItem()" style="height:35px;white-space:nowrap;flex-shrink:0">+ เพิ่ม</button>
           </div></div>
@@ -479,7 +488,7 @@ input:focus,select:focus{border-color:var(--blue);}
             <button class="btn btn-danger" onclick="doPurchase()" style="height:44px;padding:0 20px;font-size:14px;font-weight:500">ตัดเงิน</button>
           </div>
         </div>
-        <button class="btn" onclick="clearScan()" style="margin-top:8px">↻ สแกนใหม่</button>
+        <button class="btn" onclick="clearScan()" style="margin-top:8px">&#8635; สแกนใหม่</button>
       </div>
     </div>
 
@@ -487,14 +496,16 @@ input:focus,select:focus{border-color:var(--blue);}
     <div class="page" id="page-topup">
       <div class="two-col">
         <div class="card">
-          <div class="card-title">+ เติมเงินบัตร</div>
+          <div class="card-title">&#43; เติมเงินบัตร</div>
           <div id="topup-alert"></div>
 
           <!-- สแกนบัตร หรือ ค้นหาชื่อ -->
           <div class="fg">
             <div class="fl">สแกนบาร์โค้ด หรือ พิมพ์ชื่อ/รหัส</div>
             <div style="display:flex;gap:8px">
-              <input type="text" id="tu-search" placeholder="แตะบัตร NFC / สแกนบาร์โค้ด / พิมพ์ชื่อ..." autocomplete="off" onkeydown="if(event.key===&#39;Enter&#39;){tuSearch();return;}" oninput="tuNFCDetect(this.value)">
+              <input type="text" id="tu-search" placeholder="แตะบัตร NFC / สแกนบาร์โค้ด / พิมพ์ชื่อ..." autocomplete="off"
+                onkeydown="if(event.key===&#39;Enter&#39;){tuSearch();return;}"
+                oninput="tuNFCDetect(this.value)">
               <button class="btn btn-sm" onclick="tuSearch()" style="white-space:nowrap;height:35px">ค้นหา</button>
             </div>
             <!-- ผลค้นหา -->
@@ -513,7 +524,7 @@ input:focus,select:focus{border-color:var(--blue);}
                 <div style="font-size:11px;color:var(--text2)">ยอดปัจจุบัน</div>
                 <div style="font-size:20px;font-weight:700;color:var(--green)" id="tu-cur-bal2"></div>
               </div>
-              <button onclick="tuClear()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px">×</button>
+              <button onclick="tuClear()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px">&#215;</button>
             </div>
           </div>
 
@@ -529,22 +540,22 @@ input:focus,select:focus{border-color:var(--blue);}
             <button class="btn" onclick="qt(500)">+500</button>
             <button class="btn" onclick="qt(1000)">+1,000</button>
           </div>
-          <button class="btn btn-primary" onclick="doTopup()" style="width:100%">✓ ยืนยันเติมเงิน</button>
+          <button class="btn btn-primary" onclick="doTopup()" style="width:100%">&#10003; ยืนยันเติมเงิน</button>
         </div>
-        <div class="card"><div class="card-title">📋 เติมเงินล่าสุด</div><div id="tu-hist"></div></div>
+        <div class="card"><div class="card-title">&#128203; เติมเงินล่าสุด</div><div id="tu-hist"></div></div>
       </div>
     </div>
 
     <!-- Students -->
     <div class="page" id="page-students">
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-        <input type="text" id="st-q" placeholder="🔍 ค้นหาชื่อ / รหัส / บาร์โค้ด" style="flex:1;min-width:180px" oninput="searchStudents()">
-        <button class="btn btn-sm" style="background:#7c3aed;color:#fff;border-color:#7c3aed;white-space:nowrap" onclick="showNFCRegister()">📵 ลงทะเบียน NFC</button>
-        <button class="btn btn-sm" onclick="downloadTemplate()" style="white-space:nowrap">📥 Template Excel</button>
-        <button class="btn btn-sm" style="background:#1D6F42;color:#fff;border-color:#1D6F42;white-space:nowrap" onclick="importExcel()">📊 นำเข้า Excel</button>
+        <input type="text" id="st-q" placeholder="&#128269; ค้นหาชื่อ / รหัส / บาร์โค้ด" style="flex:1;min-width:180px" oninput="searchStudents()">
+        <button class="btn btn-sm" style="background:#7c3aed;color:#fff;border-color:#7c3aed;white-space:nowrap" onclick="showNFCRegister()">&#128245; ลงทะเบียน NFC</button>
+        <button class="btn btn-sm" onclick="downloadTemplate()" style="white-space:nowrap">&#128229; Template Excel</button>
+        <button class="btn btn-sm" style="background:#1D6F42;color:#fff;border-color:#1D6F42;white-space:nowrap" onclick="importExcel()">&#128202; นำเข้า Excel</button>
         <button class="btn btn-primary" onclick="showAddSt()">+ เพิ่มนักเรียน</button>
       </div>
-      <div class="card"><div id="st-list"><div class="loading">⏳ กำลังโหลด...</div></div></div>
+      <div class="card"><div id="st-list"><div class="loading">&#9203; กำลังโหลด...</div></div></div>
     </div>
 
     <!-- History -->
@@ -555,7 +566,7 @@ input:focus,select:focus{border-color:var(--blue);}
         <input type="date" id="hi-date" style="width:148px" onchange="loadHistory()">
         <button class="btn btn-sm" onclick="clearHiFilter()">ล้าง</button>
       </div>
-      <div class="card"><div id="hi-list"><div class="loading">⏳ กำลังโหลด...</div></div></div>
+      <div class="card"><div id="hi-list"><div class="loading">&#9203; กำลังโหลด...</div></div></div>
     </div>
 
     <!-- Shops -->
@@ -577,7 +588,7 @@ input:focus,select:focus{border-color:var(--blue);}
       <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
         <button class="btn btn-primary" onclick="showAddShop()">+ เพิ่มร้านค้า</button>
       </div>
-      <div class="card"><div id="sh-list"><div class="loading">⏳ กำลังโหลด...</div></div></div>
+      <div class="card"><div id="sh-list"><div class="loading">&#9203; กำลังโหลด...</div></div></div>
     </div>
 
     <div class="page" id="page-staffmgmt">
@@ -585,17 +596,19 @@ input:focus,select:focus{border-color:var(--blue);}
         <div style="font-size:13px;color:var(--text2)">จัดการพนักงานและรหัส PIN</div>
         <button class="btn btn-primary" onclick="showAddStaff()">+ เพิ่มพนักงาน</button>
       </div>
-      <div class="card"><div id="staff-list"><div class="loading">⏳ กำลังโหลด...</div></div></div>
+      <div class="card"><div id="staff-list"><div class="loading">&#9203; กำลังโหลด...</div></div></div>
     </div>
 
     <div class="page" id="page-report">
       <!-- แท็บ -->
       <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:2px solid var(--border);padding-bottom:0">
-        <button class="rpt-tab active" data-tab="rpt-tx" onclick="switchRptTab(this,&#39;rpt-tx&#39;)" style="padding:8px 16px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:500;color:var(--blue);border-bottom:2px solid var(--blue);margin-bottom:-2px">
-          📅 ธุรกรรม
+        <button class="rpt-tab active" data-tab="rpt-tx" onclick="switchRptTab(this,'rpt-tx')"
+          style="padding:8px 16px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:500;color:var(--blue);border-bottom:2px solid var(--blue);margin-bottom:-2px">
+          &#128197; ธุรกรรม
         </button>
-        <button class="rpt-tab" data-tab="rpt-balance" onclick="switchRptTab(this,&#39;rpt-balance&#39;)" style="padding:8px 16px;border:none;background:none;cursor:pointer;font-size:13px;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px">
-          👤 ยอดเงินนักเรียน
+        <button class="rpt-tab" data-tab="rpt-balance" onclick="switchRptTab(this,'rpt-balance')"
+          style="padding:8px 16px;border:none;background:none;cursor:pointer;font-size:13px;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px">
+          &#128100; ยอดเงินนักเรียน
         </button>
       </div>
 
@@ -610,7 +623,7 @@ input:focus,select:focus{border-color:var(--blue);}
             <button class="btn btn-sm" onclick="setRptWeek()">7 วัน</button>
             <button class="btn btn-sm" onclick="setRptMonth()">เดือนนี้</button>
           </div>
-          <button class="btn btn-primary" onclick="exportPDF()" style="margin-left:auto;white-space:nowrap">📄 PDF</button>
+          <button class="btn btn-primary" onclick="exportPDF()" style="margin-left:auto;white-space:nowrap">&#128196; PDF</button>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px" id="rpt-summary"></div>
         <div class="card" id="rpt-card">
@@ -624,7 +637,7 @@ input:focus,select:focus{border-color:var(--blue);}
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px">
           <div style="flex:1;min-width:180px">
             <div class="fl">ค้นหาชื่อนักเรียน</div>
-            <input type="text" id="bal-search" placeholder="🔍 พิมพ์ชื่อ..." oninput="filterBalanceList()">
+            <input type="text" id="bal-search" placeholder="&#128269; พิมพ์ชื่อ..." oninput="filterBalanceList()">
           </div>
           <div>
             <div class="fl">ห้องเรียน</div>
@@ -640,7 +653,7 @@ input:focus,select:focus{border-color:var(--blue);}
               <option value="balance-desc">ยอดเงิน มาก→น้อย</option>
             </select>
           </div>
-          <button class="btn btn-primary" onclick="exportBalancePDF()" style="white-space:nowrap">📄 PDF</button>
+          <button class="btn btn-primary" onclick="exportBalancePDF()" style="white-space:nowrap">&#128196; PDF</button>
         </div>
         <!-- Summary -->
         <div id="bal-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px"></div>
@@ -1367,7 +1380,7 @@ async function loadShops() {
 
 // ===== Load Staff =====
 async function loadStaffMgmt() {
-  var res = await sb.from('staff').select('*,shops(name)').order('role').order('name');
+  var res = await sb.from('staff').select('*,shops(name)').eq('active',true).order('role').order('name');
   var el = document.getElementById('staff-list');
   var data = res.data || [];
   if(!data.length){el.innerHTML='<div class="empty">ยังไม่มีพนักงาน</div>';return;}
@@ -1523,7 +1536,13 @@ async function addShop(){
   closeModal();loadShops();
 }
 async function toggleShop(id,active){await sb.from('shops').update({active:active}).eq('id',id);loadShops();}
-async function delShop(id,name){if(!confirm('ลบร้าน '+name+' ?'))return;await sb.from('shops').delete().eq('id',id);loadShops();}
+async function delShop(id,name){
+  if(!confirm('ลบร้าน '+name+' ?'))return;
+  console.log('Deleting shop:', id);
+  var res = await sb.from('shops').delete().eq('id',id);
+  console.log('Delete shop result:', JSON.stringify(res));
+  loadShops();
+}
 
 // ===== Staff Management =====
 function showAddStaff(){_showStaffModal(null);}
@@ -1569,9 +1588,20 @@ async function saveStaff(existingId){
   closeModal();loadStaffMgmt();
 }
 async function delStaff(id,name){
-  if(currentStaff&&id===currentStaff.id){alert('ไม่สามารถลบตัวเองได้');return;}
+  if(currentStaff && id===currentStaff.id){alert('ไม่สามารถลบตัวเองได้');return;}
   if(!confirm('ลบพนักงาน "'+name+'" ?'))return;
-  await sb.from('staff').update({active:false}).eq('id',id);
+  // ลองลบจริงก่อน ถ้าไม่ได้ค่อย soft delete
+  var res = await sb.from('staff').delete().eq('id',id);
+  console.log('Delete result:', JSON.stringify(res));
+  if(res.error) {
+    // fallback: soft delete
+    res = await sb.from('staff').update({active:false}).eq('id',id);
+    console.log('Soft delete result:', JSON.stringify(res));
+  }
+  if(res.error) {
+    alert('ลบไม่ได้: ' + JSON.stringify(res.error));
+    return;
+  }
   loadStaffMgmt();
 }
 
@@ -2037,5 +2067,17 @@ function exportBalancePDF() {
 window.addEventListener('load', function() { setTimeout(_appInit, 300); });
 
 </script>
+</body>
+</htmlfunction showLoginScreen() {
+  document.getElementById('shop-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('li-id').value = '';
+  document.getElementById('li-pin').value = '';
+  document.getElementById('li-alert').innerHTML = '';
+  setTimeout(function() {
+    var inp = document.getElementById('li-id');
+    if(inp) inp.focus();
+  }, 100);
+}
 
-</body></html>
+>
